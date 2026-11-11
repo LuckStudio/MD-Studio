@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="113" fill="#1C1917"/>
+  <!-- Estrella de 4 puntas (radio 184 = 36 %, control al 16 %), igual que tools/make_icons.py -->
+  <path fill="#CF6A4C" d="M256 72 Q285.4 226.6 440 256 Q285.4 285.4 256 440 Q226.6 285.4 72 256 Q226.6 226.6 256 72 Z"/>
+</svg>

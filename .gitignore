@@ -1,0 +1,10 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.log
+desktop.ini
+release-alt/
+toGithub/
+toGithub.zip
+video/

@@ -1,0 +1,141 @@
+/* ═══════════════════════════════════════════════════
+   MOVIMIENTO
+   Principios: entradas ≤ 280 ms, una sola curva (--ease), solo opacity/transform, y todo
+   se apaga con prefers-reduced-motion (ver tokens.css). Nada se mueve «por decorar».
+   ═══════════════════════════════════════════════════ */
+@keyframes rise     { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes panelIn  { from { opacity: 0; transform: translateY(6px); }  to { opacity: 1; transform: none; } }
+@keyframes pop      { from { opacity: 0; transform: scale(.96); }       to { opacity: 1; transform: none; } }
+@keyframes slideIn  { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes savedRing { 0% { box-shadow: 0 0 0 0 var(--accent-glow); } 100% { box-shadow: 0 0 0 9px transparent; } }
+
+/* Una sola definición de entrada para menús, diálogos y barras flotantes */
+.menu-dd.open, .cmd-overlay.open .cmd-box, .stats-overlay.open .stats-box, .fmt-bar.show, .font-picker.open .font-picker-menu, .tour-pop {
+  animation: pop var(--dur-fast) var(--ease);
+  transform-origin: top center;
+}
+.cmd-overlay.open, .stats-overlay.open, .settings-overlay.open { animation: panelIn var(--dur-fast) var(--ease); }
+.settings-drawer { transition: transform var(--dur-slow) var(--ease), opacity var(--dur) var(--ease); }
+
+/* Cambio de vista: el panel que aparece entra suavemente (display:none → block reinicia la animación) */
+.panel { animation: panelIn var(--dur) var(--ease); }
+.left-sidebar, .toc-panel.open, .files-panel.open { animation: panelIn var(--dur) var(--ease); }
+
+/* Inicio: entrada escalonada */
+.home:not([hidden]) { animation: panelIn var(--dur) var(--ease); }
+.home-inner > * { animation: rise var(--dur-slow) var(--ease) both; }
+.home-inner > :nth-child(2) { animation-delay: 40ms; }
+.home-inner > :nth-child(3) { animation-delay: 80ms; }
+.home-inner > :nth-child(4) { animation-delay: 120ms; }
+.home-inner > :nth-child(5) { animation-delay: 160ms; }
+.home-inner > :nth-child(n+6) { animation-delay: 200ms; }
+.home-rcard-wrap { animation: rise var(--dur-slow) var(--ease) both; }
+.home-rcard-wrap:nth-child(2) { animation-delay: 50ms; } .home-rcard-wrap:nth-child(3) { animation-delay: 100ms; }
+.home-rcard-wrap:nth-child(n+4) { animation-delay: 150ms; }
+
+/* Pulsación: respuesta inmediata en todo lo clicable */
+.btn, .home-card, .home-pill, .menu-btn, .sb-btn, .toggle-btn, .tab-add, .fmt-bar button, .tour-btn, .home-rcard {
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease),
+              transform var(--dur-fast) var(--ease), box-shadow var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.btn:active, .home-card:active, .home-pill:active, .toggle-btn:active, .tab-add:active, .fmt-bar button:active, .tour-btn:active, .home-rcard:active { transform: scale(.97); }
+
+/* Pestañas: indicador y confirmación de guardado */
+.tab-item { transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+.tab-item.just-saved .tab-dot { animation: savedRing var(--dur-slow) var(--ease-in-out) 1; }
+.statusbar .status-item { transition: color var(--dur) var(--ease); }
+
+/* Toast con muelle suave */
+.toast { transition: opacity var(--dur) var(--ease), transform var(--dur-slow) var(--ease); }
+
+/* Modo lectura: la barra de progreso sigue al scroll sin saltos */
+.reader-progress { transition: transform 90ms linear; }
+.reader-hud, .reader-rail { animation: panelIn var(--dur-slow) var(--ease); }
+
+/* Edición en la vista previa: la barra lateral de bloque aparece sin brusquedad (ver panels.css) */
+.md-blk { transition: none; }
+
+/* Bloque de la vista previa al que acaba de saltar el cursor del editor (vista dividida) */
+@keyframes blkFlash { 0% { box-shadow: -14px 0 0 -11px var(--accent); background: var(--accent-soft); } 100% { box-shadow: -14px 0 0 -11px transparent; background: transparent; } }
+.md-blk.blk-flash { animation: blkFlash 1.2s var(--ease) forwards; border-radius: var(--r-md); }
+
+/* ── Pantalla de carga: icono y barra ─────────────────────── */
+.splash {
+  position: fixed; inset: 0; z-index: 2147482000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-6);
+  background: radial-gradient(800px 460px at 50% 42%, rgba(207,106,76,.14), transparent 70%), #1C1917; color: #CF6A4C;
+  transition: opacity .45s var(--ease); pointer-events: all;
+}
+.splash-stage { width: 112px; height: 112px; }
+.splash-icon { width: 100%; height: 100%; filter: drop-shadow(0 0 26px rgba(207,106,76,.42)); animation: splashIn .6s var(--ease) both, splashPulse 1.8s ease-in-out .6s infinite; }
+@keyframes splashIn { from { opacity: 0; transform: scale(.6) rotate(-45deg); } to { opacity: 1; transform: none; } }
+@keyframes splashPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06) rotate(6deg); } }
+.splash-bar { width: min(200px, 50vw); height: 3px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; animation: rise .5s .2s var(--ease) both; }
+.splash-bar i { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, #CF6A4C, #F2B79F); transform: scaleX(0); transform-origin: left; border-radius: 3px; }
+.splash.is-leaving { opacity: 0; pointer-events: none; }
+.splash.is-leaving .splash-stage { transform: scale(1.15); transition: transform .45s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .splash-icon { animation: none; } .splash-bar i { transform: scaleX(1); } }
+
+/* ── Más movimiento (todo ≤ 300 ms, solo opacity/transform) ─────────────── */
+/* Abrir o cambiar de documento: los primeros bloques entran en cascada */
+.doc-enter > .md-blk:nth-child(-n+10) { animation: rise var(--dur-slow) var(--ease) both; }
+.doc-enter > .md-blk:nth-child(2) { animation-delay: 28ms; } .doc-enter > .md-blk:nth-child(3) { animation-delay: 56ms; }
+.doc-enter > .md-blk:nth-child(4) { animation-delay: 84ms; } .doc-enter > .md-blk:nth-child(5) { animation-delay: 112ms; }
+.doc-enter > .md-blk:nth-child(6) { animation-delay: 140ms; } .doc-enter > .md-blk:nth-child(7) { animation-delay: 168ms; }
+.doc-enter > .md-blk:nth-child(8) { animation-delay: 196ms; } .doc-enter > .md-blk:nth-child(9) { animation-delay: 224ms; }
+.doc-enter > .md-blk:nth-child(10) { animation-delay: 252ms; }
+
+/* Pestaña nueva: entra desde abajo con un ligero rebote de escala */
+@keyframes tabIn { from { opacity: 0; transform: translateY(8px) scale(.94); } to { opacity: 1; transform: none; } }
+.tab-item.tab-new { animation: tabIn var(--dur-slow) var(--ease) both; }
+
+/* Selector de vista: la píldora desliza hasta la opción activa */
+.view-toggle { position: relative; }
+.view-toggle .toggle-btn { position: relative; }
+.view-toggle.has-ind::before {
+  content: ''; position: absolute; top: 2px; bottom: 2px; left: 0; width: var(--iw, 0); border-radius: 4px; background: var(--bg-hover);
+  transform: translateX(var(--ix, 0)); transition: transform var(--dur-slow) var(--ease), width var(--dur-slow) var(--ease);
+}
+.view-toggle.has-ind.no-anim::before { transition: none; }
+.view-toggle.has-ind .toggle-btn.active { background: transparent; }
+
+/* Tarjetas del inicio: foco de luz que sigue al puntero */
+.home-card, .home-rcard { position: relative; overflow: hidden; }
+.home-card::after, .home-rcard::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity var(--dur) var(--ease);
+  background: radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), var(--accent-soft), transparent 70%);
+}
+.home-card:hover::after, .home-rcard:hover::after { opacity: 1; }
+
+/* Menú contextual: los elementos entran en cascada corta y el submenú se desliza */
+@keyframes ctxItemIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: none; } }
+.ctx-menu .ctx-item { animation: ctxItemIn var(--dur) var(--ease) both; }
+.ctx-menu .ctx-item:nth-child(2) { animation-delay: 15ms; } .ctx-menu .ctx-item:nth-child(3) { animation-delay: 30ms; }
+.ctx-menu .ctx-item:nth-child(4) { animation-delay: 45ms; } .ctx-menu .ctx-item:nth-child(5) { animation-delay: 60ms; }
+.ctx-menu .ctx-item:nth-child(6) { animation-delay: 75ms; } .ctx-menu .ctx-item:nth-child(7) { animation-delay: 90ms; }
+.ctx-menu .ctx-item:nth-child(n+8) { animation-delay: 105ms; }
+
+/* Logo: la estrella gira al pasar el puntero */
+.menu-logo-icon .ic { transition: transform var(--dur-slow) var(--ease); }
+.menu-logo:hover .menu-logo-icon .ic { transform: rotate(90deg) scale(1.12); }
+
+/* ── Fundidos entre pantallas ───────────────────────────── */
+/* Diálogos y paneles superpuestos: se funden al abrir Y al cerrar (antes desaparecían de golpe) */
+.cmd-overlay, .stats-overlay, .settings-overlay {
+  display: flex; opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity var(--dur-slow) var(--ease), visibility 0s linear var(--dur-slow);
+}
+.settings-overlay { display: block; }
+.cmd-overlay.open, .stats-overlay.open, .settings-overlay.open {
+  opacity: 1; visibility: visible; pointer-events: auto; animation: none;
+  transition: opacity var(--dur-slow) var(--ease), visibility 0s;
+}
+.cmd-box, .stats-box { transform: translateY(10px) scale(.98); transition: transform var(--dur-slow) var(--ease); }
+.cmd-overlay.open .cmd-box, .stats-overlay.open .stats-box { transform: none; animation: none; }
+/* Menús desplegables de la barra */
+.menu-dd { display: block; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-4px); animation: none;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), visibility 0s linear var(--dur); }
+.menu-dd.open { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), visibility 0s; animation: none; }
+/* Copia inerte que se desvanece al ocultar el inicio (ver ghostFade en motion.js) */
+.home.ghost { z-index: 8001; }
+/* `transition: all` heredaría también la visibilidad del menú y el primer elemento no podría recibir el foco al abrir */
+.menu-dd button, .menu-dd button * { transition-property: background-color, color, border-color, box-shadow; }

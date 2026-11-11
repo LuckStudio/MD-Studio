@@ -1,0 +1,16 @@
+/* ── PANTALLAS ESTRECHAS (móvil / tablet vertical) ──
+   En < 760px no cabe la vista dividida: view.js fuerza una sola columna
+   y aquí se recorta el cromo que no aporta en táctil. */
+@media (max-width: 760px) {
+  .menu-logo-text,
+  .wc-badge,
+  #v-split,
+  .menubar-right > .menu-btn { display: none !important; }
+
+  .left-sidebar { display: none !important; }
+  .divider { display: none !important; }
+
+  .tabs-actions .btn:not(:first-child) { display: none; }
+
+  .statusbar .status-right { display: none; }
+}

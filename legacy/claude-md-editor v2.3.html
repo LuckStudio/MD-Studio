@@ -1,0 +1,3060 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Claude MD Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg-primary:   #1C1917;
+  --bg-secondary: #242220;
+  --bg-tertiary:  #2D2A27;
+  --bg-hover:     #343130;
+  --border:       #3D3A37;
+  --border-light: #4A4744;
+  --text-primary: #F2EDE8;
+  --text-secondary:#B8AFA8;
+  --text-muted:   #7A7470;
+  --accent:       #CF6A4C;
+  --accent-hover: #D97855;
+  --accent-soft:  rgba(207,106,76,0.12);
+  --accent-glow:  rgba(207,106,76,0.25);
+  --success:      #5FA37A;
+  --code-bg:      #161412;
+  --selection:    rgba(207,106,76,0.3);
+  --scrollbar:    #3D3A37;
+  --font-display: 'Lora', Georgia, serif;
+  --font-ui:      'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', 'Courier New', monospace;
+  /* Configurables desde el panel de ajustes */
+  --font-editor:  'DM Mono', 'Courier New', monospace;
+  --font-preview: 'Lora', Georgia, serif;
+  --editor-size:  14.5px;
+  --preview-size: 16.5px;
+  --editor-lh:    1.75;
+  --preview-lh:   1.85;
+  --preview-width: 720px;
+  --radius:       6px;
+  --radius-lg:    10px;
+  --transition:   0.18s ease;
+  --sidebar-w:    54px;
+}
+
+/* ── TEMA CLARO ────────────────────────────── */
+body.light-theme {
+  --bg-primary:   #FBF8F4;
+  --bg-secondary: #F3EEE7;
+  --bg-tertiary:  #EAE3D9;
+  --bg-hover:     #E0D7CB;
+  --border:       #DDD3C6;
+  --border-light: #CABFAF;
+  --text-primary: #2A2622;
+  --text-secondary:#5C544C;
+  --text-muted:   #938A7E;
+  --code-bg:      #F0EAE0;
+  --selection:    rgba(207,106,76,0.22);
+  --scrollbar:    #CABFAF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+::selection { background: var(--selection); }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-size: 14px;
+}
+
+/* ── MENU BAR ─────────────────────────────── */
+.menubar {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 0 8px;
+  gap: 0;
+  user-select: none;
+  position: relative;
+  z-index: 500;
+}
+
+.menu-logo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px 0 4px;
+  margin-right: 4px;
+  border-right: 1px solid var(--border);
+}
+.menu-logo-icon {
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 8px var(--accent-glow);
+  flex-shrink: 0;
+}
+.menu-logo-text {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.menu-group {
+  position: relative;
+}
+.menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  padding: 0 11px;
+  height: 36px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.menu-btn:hover, .menu-btn.open {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.menu-dd {
+  display: none;
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  min-width: 230px;
+  padding: 5px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  z-index: 9999;
+  animation: ddFadeIn 0.12s ease;
+}
+.menu-dd.open { display: block; }
+@keyframes ddFadeIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: none; } }
+.menu-dd button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  padding: 7px 11px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  gap: 16px;
+  text-align: left;
+}
+.menu-dd button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.menu-dd button.danger:hover { background: rgba(207,76,76,0.15); color: #E07070; }
+.menu-dd .menu-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 6px;
+}
+.menu-dd kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.menubar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding-left: 10px;
+}
+.wc-badge {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  padding: 0 9px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  gap: 5px;
+  white-space: nowrap;
+}
+.wc-badge span { color: var(--accent); font-weight: 500; }
+
+.view-toggle {
+  display: flex;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  gap: 2px;
+}
+.toggle-btn {
+  padding: 4px 11px;
+  border-radius: 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.toggle-btn.active { background: var(--bg-hover); color: var(--text-primary); }
+.toggle-btn:hover:not(.active) { color: var(--text-secondary); }
+
+/* ── TABS BAR ─────────────────────────────── */
+.tabs-bar {
+  display: flex;
+  align-items: stretch;
+  height: 42px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  position: relative;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+
+.tabs-list {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  gap: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px 0 16px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  min-width: 110px;
+  max-width: 220px;
+  position: relative;
+  user-select: none;
+}
+.tab-item:hover { background: var(--bg-secondary); color: var(--text-secondary); }
+.tab-item.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--accent);
+}
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--bg-secondary);
+}
+.tab-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.tab-item.modified .tab-dot { opacity: 1; }
+.tab-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.tab-label input {
+  background: none;
+  border: none;
+  outline: 1px solid var(--accent);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  width: 100%;
+  border-radius: 2px;
+  padding: 1px 3px;
+}
+.tab-close {
+  width: 18px; height: 18px;
+  border-radius: 3px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.tab-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.tab-add {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: none;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.tab-add:hover { background: var(--bg-secondary); color: var(--text-primary); }
+
+.tabs-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  margin-left: auto;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 13px;
+  height: 30px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+.btn-ghost:hover { background: var(--bg-hover); border-color: var(--border-light); color: var(--text-primary); }
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 6px var(--accent-glow);
+}
+.btn-accent:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 2px 10px var(--accent-glow); }
+.btn-accent:active { transform: translateY(0); }
+
+/* ── MAIN AREA ────────────────────────────── */
+.main-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── LEFT SIDEBAR ─────────────────────────── */
+.left-sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 2px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  scrollbar-width: none;
+}
+.left-sidebar::-webkit-scrollbar { display: none; }
+
+.sb-btn {
+  width: 40px;
+  height: 36px;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  position: relative;
+}
+.sb-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sb-btn:active { background: var(--accent-soft); color: var(--accent); transform: scale(0.9); }
+.sb-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+/* ── TOC PANEL ─────────────────────────────── */
+.toc-panel {
+  width: 0;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+.toc-panel.open { width: 240px; }
+.toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 16px;
+  height: 36px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.toc-close {
+  width: 24px; height: 24px;
+  border: none; background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-size: 16px;
+  transition: all var(--transition);
+}
+.toc-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.toc-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 6px;
+  scrollbar-width: thin;
+}
+.toc-list::-webkit-scrollbar { width: 5px; }
+.toc-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+.toc-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.toc-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.toc-item.lvl1 { font-weight: 600; color: var(--text-primary); }
+.toc-item.lvl2 { padding-left: 20px; }
+.toc-item.lvl3 { padding-left: 32px; font-size: 12px; }
+.toc-item.lvl4 { padding-left: 44px; font-size: 11.5px; color: var(--text-muted); }
+.toc-item.lvl5, .toc-item.lvl6 { padding-left: 52px; font-size: 11px; color: var(--text-muted); }
+.toc-empty {
+  padding: 20px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-family: var(--font-display);
+  text-align: center;
+  line-height: 1.6;
+}
+.sb-sep {
+  width: 28px;
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+.sb-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-ui);
+  text-align: center;
+  padding: 4px 0 2px;
+}
+
+/* ── WORKSPACE ────────────────────────────── */
+.workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  transition: flex 0.25s ease;
+}
+.panel.hidden { display: none; }
+
+.panel-label {
+  padding: 6px 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.preview-edit-toggle {
+  font-size: 11px;
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px 10px;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  transition: all var(--transition);
+}
+.preview-edit-toggle:hover { background: var(--bg-hover); color: var(--text-secondary); border-color: var(--border-light); }
+.preview-edit-toggle.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* EDITOR */
+.editor-panel { border-right: 1px solid var(--border); }
+.editor-area {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+.editor-wrap {
+  display: flex;
+  min-height: 100%;
+}
+.line-numbers {
+  padding: 18px 0;
+  min-width: 46px;
+  text-align: right;
+  padding-right: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.75;
+  user-select: none;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+textarea#editor {
+  flex: 1;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 18px 20px;
+  font-family: var(--font-editor);
+  font-size: var(--editor-size);
+  line-height: var(--editor-lh);
+  tab-size: 2;
+  caret-color: var(--accent);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow-x: hidden;
+  min-height: 100%;
+}
+textarea#editor::placeholder { color: var(--text-muted); }
+textarea#editor::-webkit-scrollbar { width: 5px; }
+textarea#editor::-webkit-scrollbar-track { background: transparent; }
+textarea#editor::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+
+/* ── FIND & REPLACE PANEL ──────────────────── */
+.find-panel {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9000;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+  padding: 10px;
+  display: none;
+  flex-direction: column;
+  gap: 7px;
+  width: 520px;
+  max-width: 92vw;
+  animation: ddFadeIn 0.12s ease;
+}
+.find-panel.open { display: flex; }
+.find-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.find-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 8px;
+  height: 30px;
+  transition: border-color var(--transition);
+}
+.find-input-wrap:focus-within { border-color: var(--accent); }
+.find-input-wrap input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  height: 100%;
+}
+.find-input-wrap input::placeholder { color: var(--text-muted); }
+.find-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding-left: 6px;
+  flex-shrink: 0;
+}
+.find-count.nores { color: #E07070; }
+.find-btn {
+  width: 28px; height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  transition: all var(--transition);
+  font-family: var(--font-ui);
+}
+.find-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+.find-btn.toggle.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.find-btn.wide { width: auto; padding: 0 10px; font-size: 12px; white-space: nowrap; }
+.find-close {
+  width: 28px; height: 30px;
+  flex-shrink: 0;
+  border: none; background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-size: 16px;
+  transition: all var(--transition);
+}
+.find-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.find-options { display: flex; gap: 4px; }
+
+/* ── FLASH / HIGHLIGHT AL SALTAR ───────────── */
+@keyframes flashFade {
+  0%   { background: var(--accent-glow); }
+  100% { background: transparent; }
+}
+.flash-line {
+  animation: flashFade 2s ease forwards;
+  border-radius: 4px;
+}
+/* Overlay para resaltar en el editor (textarea no admite highlight interno) */
+.editor-flash {
+  position: absolute;
+  left: 0; right: 0;
+  background: var(--accent-glow);
+  pointer-events: none;
+  z-index: 5;
+  border-radius: 3px;
+  animation: flashFade 2s ease forwards;
+}
+.preview-content .flash-target {
+  animation: flashFade 2s ease forwards;
+  border-radius: 4px;
+  margin-left: -6px;
+  padding-left: 6px;
+}
+
+/* DIVIDER */
+.divider {
+  width: 4px;
+  background: var(--border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background var(--transition);
+  position: relative;
+}
+.divider:hover, .divider.dragging { background: var(--accent); }
+.divider::after { content: ''; position: absolute; inset: 0 -4px; }
+
+/* PREVIEW */
+.preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 40px;
+  background: var(--bg-primary);
+}
+.editor-area::-webkit-scrollbar,
+.preview-scroll::-webkit-scrollbar { width: 5px; }
+.editor-area::-webkit-scrollbar-track,
+.preview-scroll::-webkit-scrollbar-track { background: transparent; }
+.editor-area::-webkit-scrollbar-thumb,
+.preview-scroll::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+
+.preview-content {
+  max-width: var(--preview-width);
+  margin: 0 auto;
+  font-family: var(--font-preview);
+  font-size: var(--preview-size);
+  line-height: var(--preview-lh);
+  color: var(--text-primary);
+  outline: none;
+  min-height: 100%;
+}
+.preview-content.editing-mode {
+  outline: 1px dashed rgba(207,106,76,0.3);
+  border-radius: var(--radius);
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+
+.preview-content h1, .preview-content h2, .preview-content h3,
+.preview-content h4, .preview-content h5, .preview-content h6 {
+  font-family: var(--font-preview);
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  font-weight: 600;
+}
+.preview-content h1 { font-size: 2.1em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+.preview-content h2 { font-size: 1.5em; }
+.preview-content h3 { font-size: 1.25em; color: var(--text-secondary); }
+.preview-content h4 { font-size: 1.05em; color: var(--text-secondary); }
+.preview-content p { margin-bottom: 1.1em; }
+.preview-content a { color: var(--accent); text-decoration: underline; text-decoration-color: var(--accent-soft); transition: color var(--transition); }
+.preview-content a:hover { color: var(--accent-hover); }
+.preview-content strong { color: var(--text-primary); font-weight: 600; }
+.preview-content em { font-style: italic; color: var(--text-secondary); }
+.preview-content del { color: var(--text-muted); }
+.preview-content ul, .preview-content ol { margin-bottom: 1em; padding-left: 1.6em; }
+.preview-content li { margin-bottom: 0.3em; }
+.preview-content li::marker { color: var(--accent); }
+.preview-content blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 1.4em 0;
+  padding: 0.6em 1.2em;
+  background: var(--accent-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.preview-content code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--code-bg);
+  color: #E0A07A;
+  padding: 0.15em 0.45em;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.preview-content pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  overflow-x: auto;
+  margin: 1.4em 0;
+  position: relative;
+}
+.preview-content pre::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 10px; right: 14px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.preview-content pre code {
+  background: none; border: none; padding: 0;
+  color: #D4A47A; font-size: 13.5px; line-height: 1.7;
+}
+.preview-content table { width: 100%; border-collapse: collapse; margin: 1.4em 0; font-size: 0.93em; }
+.preview-content th {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-family: var(--font-ui);
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 9px 13px;
+  border-bottom: 2px solid var(--border);
+  text-align: left;
+}
+.preview-content td { padding: 9px 13px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.preview-content tr:hover td { background: var(--bg-secondary); }
+.preview-content hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+.preview-content img { max-width: 100%; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+.preview-content input[type="checkbox"] { accent-color: var(--accent); margin-right: 6px; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  gap: 12px;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 40px; opacity: 0.3; }
+.empty-state p { font-size: 15px; font-family: var(--font-display); font-style: italic; }
+
+/* ── STATUS BAR ────────────────────────────── */
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.status-left, .status-right { display: flex; gap: 14px; align-items: center; }
+.status-item { display: flex; gap: 4px; align-items: center; }
+.status-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+.status-modified { color: var(--accent); }
+
+/* ── COMMAND PALETTE ───────────────────────── */
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 10000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  backdrop-filter: blur(2px);
+}
+.cmd-overlay.open { display: flex; animation: ddFadeIn 0.12s ease; }
+.cmd-box {
+  width: 560px;
+  max-width: 92vw;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 64vh;
+}
+.cmd-input {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.cmd-input::placeholder { color: var(--text-muted); }
+.cmd-results {
+  overflow-y: auto;
+  padding: 6px;
+  scrollbar-width: thin;
+}
+.cmd-results::-webkit-scrollbar { width: 6px; }
+.cmd-results::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+.cmd-group-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 8px 12px 4px;
+}
+.cmd-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+.cmd-item .cmd-icon { width: 20px; text-align: center; flex-shrink: 0; font-size: 14px; }
+.cmd-item .cmd-name { flex: 1; }
+.cmd-item .cmd-kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.cmd-item.sel { background: var(--accent-soft); color: var(--text-primary); }
+.cmd-item.sel .cmd-icon { color: var(--accent); }
+.cmd-empty { padding: 24px; text-align: center; color: var(--text-muted); font-style: italic; font-family: var(--font-display); }
+
+/* ── SETTINGS DRAWER ───────────────────────── */
+.settings-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 10001;
+  display: none;
+  backdrop-filter: blur(2px);
+}
+.settings-overlay.open { display: block; animation: ddFadeIn 0.15s ease; }
+.settings-drawer {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100%;
+  width: 360px;
+  max-width: 90vw;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-light);
+  box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+  z-index: 10002;
+  transform: translateX(100%);
+  transition: transform 0.22s ease;
+  display: flex;
+  flex-direction: column;
+}
+.settings-drawer.open { transform: translateX(0); }
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.settings-head h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 18px 24px;
+  scrollbar-width: thin;
+}
+.settings-body::-webkit-scrollbar { width: 6px; }
+.settings-body::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+.set-group { margin-top: 20px; }
+.set-group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-family: var(--font-ui);
+}
+.set-row {
+  margin-bottom: 14px;
+}
+.set-row label {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.set-row .val { color: var(--accent); font-family: var(--font-mono); font-size: 11px; }
+.set-select, .set-row input[type="range"] {
+  width: 100%;
+}
+.set-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+}
+.set-select:focus { outline: none; border-color: var(--accent); }
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 4px;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px; border: none;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+.theme-toggle-row { display: flex; gap: 8px; }
+.theme-opt {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  transition: all var(--transition);
+  text-align: center;
+}
+.theme-opt:hover { border-color: var(--border-light); color: var(--text-primary); }
+.theme-opt.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.accent-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.accent-sw {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform var(--transition);
+}
+.accent-sw:hover { transform: scale(1.12); }
+.accent-sw.active { border-color: var(--text-primary); }
+.set-reset {
+  width: 100%;
+  margin-top: 24px;
+  padding: 9px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  transition: all var(--transition);
+}
+.set-reset:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* ── TOAST ─────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 38px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  font-family: var(--font-ui);
+  padding: 8px 20px;
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── DROP OVERLAY ──────────────────────────── */
+.drop-overlay {
+  position: fixed; inset: 0;
+  background: rgba(28,25,23,0.88);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 9999; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(3px);
+}
+.drop-overlay.active { opacity: 1; pointer-events: all; }
+.drop-box {
+  border: 2px dashed var(--accent);
+  border-radius: 16px;
+  padding: 52px 72px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+  background: var(--accent-soft);
+  box-shadow: 0 0 40px var(--accent-glow);
+  animation: pulse-border 1.4s ease infinite;
+}
+@keyframes pulse-border {
+  0%,100% { box-shadow: 0 0 30px var(--accent-glow); }
+  50% { box-shadow: 0 0 55px rgba(207,106,76,0.45); }
+}
+.drop-icon { font-size: 48px; opacity: 0.85; }
+.drop-title { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--text-primary); }
+.drop-sub { font-size: 14px; color: var(--text-muted); font-family: var(--font-ui); }
+
+/* ── SIDEBAR TOOLTIP (via JS) ──────────────── */
+#sb-tooltip {
+  position: fixed;
+  z-index: 99999;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--border-light);
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--font-ui);
+  opacity: 0;
+  transition: opacity 0.12s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- ── MENU BAR ──────────────────────────────────────── -->
+<div class="menubar" id="menubar">
+  <div class="menu-logo">
+    <div class="menu-logo-icon">✦</div>
+    <span class="menu-logo-text">Claude MD</span>
+  </div>
+
+  <div class="menu-group" id="mg-archivo">
+    <button class="menu-btn" onclick="toggleMenu('archivo')">Archivo</button>
+    <div class="menu-dd" id="dd-archivo">
+      <button onclick="newTab(); closeMenu()">📄 Nuevo <kbd>Ctrl+N</kbd></button>
+      <button onclick="openFile(); closeMenu()">📂 Abrir archivo… <kbd>Ctrl+O</kbd></button>
+      <button onclick="closeActiveTab(); closeMenu()">✕ Cerrar pestaña <kbd>Ctrl+W</kbd></button>
+      <div class="menu-sep"></div>
+      <button onclick="saveFile(); closeMenu()">💾 Guardar <kbd>Ctrl+S</kbd></button>
+      <button onclick="saveFileAs(); closeMenu()">💾 Guardar como… <kbd>Ctrl+⇧+S</kbd></button>
+      <button onclick="downloadMD(); closeMenu()">⬇ Descargar .md</button>
+      <div class="menu-sep"></div>
+      <button onclick="showExample(); closeMenu()">✦ Mostrar ejemplo</button>
+      <div class="menu-sep"></div>
+      <button onclick="copyMD(); closeMenu()">⎘ Copiar Markdown</button>
+      <button onclick="triggerImport(); closeMenu()">⬆ Importar archivo</button>
+      <div class="menu-sep"></div>
+      <button onclick="clearEditor(); closeMenu()" class="danger">🗑 Limpiar y borrar todo</button>
+    </div>
+  </div>
+
+  <div class="menu-group" id="mg-formato">
+    <button class="menu-btn" onclick="toggleMenu('formato')">Formato</button>
+    <div class="menu-dd" id="dd-formato">
+      <button onclick="wrap('**','**'); closeMenu()">𝐁 Negrita <kbd>Ctrl+B</kbd></button>
+      <button onclick="wrap('*','*'); closeMenu()"><em>I</em> Cursiva <kbd>Ctrl+I</kbd></button>
+      <button onclick="wrap('~~','~~'); closeMenu()"><del>S</del> Tachado</button>
+      <button onclick="wrap('`','`'); closeMenu()">⌥ Código inline</button>
+      <div class="menu-sep"></div>
+      <button onclick="insertHeading(1); closeMenu()">H1 Encabezado 1</button>
+      <button onclick="insertHeading(2); closeMenu()">H2 Encabezado 2</button>
+      <button onclick="insertHeading(3); closeMenu()">H3 Encabezado 3</button>
+      <button onclick="insertHeading(4); closeMenu()">H4 Encabezado 4</button>
+      <div class="menu-sep"></div>
+      <button onclick="insertBlock('link'); closeMenu()">🔗 Enlace</button>
+      <button onclick="insertBlock('image'); closeMenu()">🖼 Imagen</button>
+      <div class="menu-sep"></div>
+      <button onclick="insertBlock('ul'); closeMenu()">≡ Lista con viñetas</button>
+      <button onclick="insertBlock('ol'); closeMenu()">№ Lista numerada</button>
+      <button onclick="insertBlock('task'); closeMenu()">☑ Lista de tareas</button>
+      <button onclick="insertBlock('blockquote'); closeMenu()">" Cita</button>
+      <button onclick="insertBlock('code'); closeMenu()">&lt;/&gt; Bloque de código</button>
+      <button onclick="insertBlock('table'); closeMenu()">⊞ Tabla</button>
+      <button onclick="insertBlock('hr'); closeMenu()">― Separador</button>
+    </div>
+  </div>
+
+  <div class="menu-group" id="mg-ver">
+    <button class="menu-btn" onclick="toggleMenu('ver')">Ver</button>
+    <div class="menu-dd" id="dd-ver">
+      <button onclick="setView('split'); closeMenu()">⊟ Vista dividida</button>
+      <button onclick="setView('editor'); closeMenu()">✏ Solo editor</button>
+      <button onclick="setView('preview'); closeMenu()">👁 Solo vista previa</button>
+      <div class="menu-sep"></div>
+      <button onclick="toggleWordWrap(); closeMenu()" id="ww-toggle-btn">☑ Ajuste de línea (activo)</button>
+    </div>
+  </div>
+
+  <div class="menu-group" id="mg-editar">
+    <button class="menu-btn" onclick="toggleMenu('editar')">Editar</button>
+    <div class="menu-dd" id="dd-editar">
+      <button onclick="undo(); closeMenu()">↩ Deshacer <kbd>Ctrl+Z</kbd></button>
+      <button onclick="redo(); closeMenu()">↪ Rehacer <kbd>Ctrl+Y</kbd></button>
+      <div class="menu-sep"></div>
+      <button onclick="closeMenu(); openFind(false)">🔍 Buscar <kbd>Ctrl+F</kbd></button>
+      <button onclick="closeMenu(); openFind(true)">⇄ Buscar y reemplazar <kbd>Ctrl+H</kbd></button>
+    </div>
+  </div>
+
+  <div class="menubar-right">
+    <div class="wc-badge" title="Palabras · Caracteres · Tokens estimados"><span id="wc">0</span> pal · <span id="cc">0</span> ch · ~<span id="tk">0</span> tok</div>
+    <div class="view-toggle">
+      <button class="toggle-btn active" onclick="setView('split')" id="v-split">⊟</button>
+      <button class="toggle-btn" onclick="setView('editor')" id="v-editor">✏</button>
+      <button class="toggle-btn" onclick="setView('preview')" id="v-preview">👁</button>
+    </div>
+    <button class="menu-btn" onclick="openSettings()" title="Apariencia" style="padding:0 10px;height:30px;border-radius:var(--radius)">✦</button>
+  </div>
+</div>
+
+<!-- ── TABS BAR ──────────────────────────────────────── -->
+<div class="tabs-bar" id="tabsBar">
+  <div class="tabs-list" id="tabsList"></div>
+  <button class="tab-add" onclick="newTab()" title="Nueva pestaña">+</button>
+  <div class="tabs-actions">
+    <button class="btn btn-ghost" onclick="saveFile()" title="Guardar (Ctrl+S)">💾 Guardar</button>
+    <button class="btn btn-ghost" onclick="downloadMD()" title="Descargar .md">⬇</button>
+    <button class="btn btn-ghost" onclick="copyMD()" title="Copiar Markdown">⎘</button>
+    <input type="file" id="fileImport" accept=".md,.markdown,.txt" style="display:none" onchange="handleFileImport(event)" multiple />
+  </div>
+</div>
+
+<!-- ── MAIN AREA ─────────────────────────────────────── -->
+<div class="main-area">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="left-sidebar" id="leftSidebar">
+    <button class="sb-btn" id="tocToggleBtn" data-tip="Índice / Outline" onclick="toggleTOC()" style="font-size:16px">☰</button>
+    <div class="sb-sep"></div>
+    <div class="sb-label">TXT</div>
+    <button class="sb-btn" data-tip="Encabezado 1" onclick="insertHeading(1)">H1</button>
+    <button class="sb-btn" data-tip="Encabezado 2" onclick="insertHeading(2)">H2</button>
+    <button class="sb-btn" data-tip="Encabezado 3" onclick="insertHeading(3)">H3</button>
+    <button class="sb-btn" data-tip="Encabezado 4" onclick="insertHeading(4)">H4</button>
+    <div class="sb-sep"></div>
+    <button class="sb-btn" data-tip="Negrita (Ctrl+B)" onclick="wrap('**','**')"><b>B</b></button>
+    <button class="sb-btn" data-tip="Cursiva (Ctrl+I)" onclick="wrap('*','*')"><i>I</i></button>
+    <button class="sb-btn" data-tip="Tachado" onclick="wrap('~~','~~')"><s>S</s></button>
+    <button class="sb-btn" data-tip="Código inline" onclick="wrap('`','`')" style="font-size:13px">⌥</button>
+    <div class="sb-sep"></div>
+    <button class="sb-btn" data-tip="Enlace" onclick="insertBlock('link')">🔗</button>
+    <button class="sb-btn" data-tip="Imagen" onclick="insertBlock('image')">🖼</button>
+    <div class="sb-sep"></div>
+    <button class="sb-btn" data-tip="Lista con viñetas" onclick="insertBlock('ul')">≡</button>
+    <button class="sb-btn" data-tip="Lista numerada" onclick="insertBlock('ol')" style="font-size:12px">№</button>
+    <button class="sb-btn" data-tip="Lista de tareas" onclick="insertBlock('task')">☑</button>
+    <div class="sb-sep"></div>
+    <button class="sb-btn" data-tip="Cita" onclick="insertBlock('blockquote')" style="font-size:18px">"</button>
+    <button class="sb-btn" data-tip="Bloque de código" onclick="insertBlock('code')" style="font-size:11px">&lt;/&gt;</button>
+    <button class="sb-btn" data-tip="Tabla" onclick="insertBlock('table')">⊞</button>
+    <button class="sb-btn" data-tip="Separador" onclick="insertBlock('hr')">―</button>
+    <div class="sb-sep"></div>
+    <button class="sb-btn" data-tip="Deshacer (Ctrl+Z)" onclick="undo()">↩</button>
+    <button class="sb-btn" data-tip="Rehacer (Ctrl+Y)" onclick="redo()">↪</button>
+  </div>
+
+  <!-- TOC PANEL -->
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <span>Índice</span>
+      <button class="toc-close" onclick="toggleTOC()" title="Cerrar">×</button>
+    </div>
+    <div class="toc-list" id="tocList"></div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace" id="workspace">
+
+    <!-- EDITOR PANEL -->
+    <div class="panel editor-panel" id="editorPanel">
+      <div class="panel-label">
+        <span>✏ Editor Markdown</span>
+        <span id="wrapStatus" style="font-size:10px;color:var(--accent);opacity:0.7">AJUSTE ACTIVO</span>
+      </div>
+      <div class="editor-area" id="editorArea">
+        <!-- FIND & REPLACE PANEL -->
+        <div class="find-panel" id="findPanel">
+          <div class="find-row">
+            <div class="find-input-wrap">
+              <input type="text" id="findInput" placeholder="Buscar…" spellcheck="false" />
+              <span class="find-count" id="findCount">0/0</span>
+            </div>
+            <button class="find-btn" id="findPrev" title="Anterior (⇧Enter)" onclick="findNav(-1)">↑</button>
+            <button class="find-btn" id="findNext" title="Siguiente (Enter)" onclick="findNav(1)">↓</button>
+            <div class="find-options">
+              <button class="find-btn toggle" id="findCase" title="Distinguir mayúsculas/minúsculas" onclick="toggleFindOpt('case')">Aa</button>
+              <button class="find-btn toggle" id="findWord" title="Palabra completa" onclick="toggleFindOpt('word')">W</button>
+              <button class="find-btn toggle" id="findRegex" title="Expresión regular" onclick="toggleFindOpt('regex')">.*</button>
+            </div>
+            <button class="find-close" title="Cerrar (Esc)" onclick="closeFind()">×</button>
+          </div>
+          <div class="find-row" id="replaceRow">
+            <div class="find-input-wrap">
+              <input type="text" id="replaceInput" placeholder="Reemplazar con…" spellcheck="false" />
+            </div>
+            <button class="find-btn wide" title="Reemplazar coincidencia actual" onclick="replaceOne()">Reemplazar</button>
+            <button class="find-btn wide" title="Reemplazar todas" onclick="replaceAll()">Todas</button>
+          </div>
+        </div>
+        <div class="editor-wrap">
+          <div class="line-numbers" id="lineNumbers" style="display:none">1</div>
+          <textarea id="editor" spellcheck="false" placeholder="Empieza a escribir en Markdown…&#10;&#10;# Título principal&#10;## Subtítulo&#10;&#10;**Negrita**, *cursiva*, `código`&#10;&#10;> Una cita"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="divider" id="divider"></div>
+
+    <!-- PREVIEW PANEL -->
+    <div class="panel preview-panel" id="previewPanel">
+      <div class="panel-label">
+        <span>👁 Vista Previa</span>
+        <button class="preview-edit-toggle" id="previewEditToggle" onclick="togglePreviewEdit()" title="Activar edición directa en la vista previa">✎ Editar aquí</button>
+      </div>
+      <div class="preview-scroll">
+        <div class="preview-content" id="preview" contenteditable="false" spellcheck="false">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">✦</div>
+            <p>Tu contenido aparecerá aquí…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /workspace -->
+</div><!-- /main-area -->
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="status-left">
+    <div class="status-item"><div class="status-dot"></div> Listo</div>
+    <div class="status-item" id="cursorPos">Ln 1, Col 1</div>
+    <div class="status-item status-modified" id="modifiedIndicator" style="display:none">● Sin guardar</div>
+  </div>
+  <div class="status-right">
+    <div class="status-item">UTF-8</div>
+    <div class="status-item">Markdown</div>
+    <div class="status-item" id="lsStatus" style="color:var(--success)">💾 LS activo</div>
+  </div>
+</div>
+
+<!-- DROP OVERLAY -->
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-box">
+    <div class="drop-icon">📂</div>
+    <div class="drop-title">Suelta tu archivo aquí</div>
+    <div class="drop-sub">Archivos .md · .markdown · .txt</div>
+  </div>
+</div>
+
+<!-- SETTINGS DRAWER -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="settings-drawer" id="settingsDrawer">
+  <div class="settings-head">
+    <h3>✦ Apariencia</h3>
+    <button class="find-close" onclick="closeSettings()" title="Cerrar">×</button>
+  </div>
+  <div class="settings-body">
+
+    <div class="set-group">
+      <div class="set-group-title">Tema</div>
+      <div class="theme-toggle-row">
+        <button class="theme-opt" id="themeDark" onclick="setTheme('dark')">🌙 Oscuro</button>
+        <button class="theme-opt" id="themeLight" onclick="setTheme('light')">☀ Claro</button>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-group-title">Color de acento</div>
+      <div class="accent-swatches" id="accentSwatches"></div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-group-title">Editor</div>
+      <div class="set-row">
+        <label>Tipografía</label>
+        <select class="set-select" id="setFontEditor" onchange="applySetting('font-editor', this.value)"></select>
+      </div>
+      <div class="set-row">
+        <label>Tamaño <span class="val" id="valEditorSize"></span></label>
+        <input type="range" id="setEditorSize" min="11" max="22" step="0.5" oninput="applySetting('editor-size', this.value+'px'); document.getElementById('valEditorSize').textContent=this.value+'px'">
+      </div>
+      <div class="set-row">
+        <label>Interlineado <span class="val" id="valEditorLh"></span></label>
+        <input type="range" id="setEditorLh" min="1.3" max="2.4" step="0.05" oninput="applySetting('editor-lh', this.value); document.getElementById('valEditorLh').textContent=this.value">
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-group-title">Vista previa</div>
+      <div class="set-row">
+        <label>Tipografía</label>
+        <select class="set-select" id="setFontPreview" onchange="applySetting('font-preview', this.value)"></select>
+      </div>
+      <div class="set-row">
+        <label>Tamaño <span class="val" id="valPreviewSize"></span></label>
+        <input type="range" id="setPreviewSize" min="13" max="24" step="0.5" oninput="applySetting('preview-size', this.value+'px'); document.getElementById('valPreviewSize').textContent=this.value+'px'">
+      </div>
+      <div class="set-row">
+        <label>Interlineado <span class="val" id="valPreviewLh"></span></label>
+        <input type="range" id="setPreviewLh" min="1.3" max="2.4" step="0.05" oninput="applySetting('preview-lh', this.value); document.getElementById('valPreviewLh').textContent=this.value">
+      </div>
+      <div class="set-row">
+        <label>Ancho de columna <span class="val" id="valPreviewWidth"></span></label>
+        <input type="range" id="setPreviewWidth" min="540" max="1100" step="20" oninput="applySetting('preview-width', this.value+'px'); document.getElementById('valPreviewWidth').textContent=this.value+'px'">
+      </div>
+    </div>
+
+    <button class="set-reset" onclick="resetSettings()">↺ Restablecer valores por defecto</button>
+  </div>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div class="cmd-overlay" id="cmdOverlay">
+  <div class="cmd-box">
+    <input type="text" class="cmd-input" id="cmdInput" placeholder="Buscar comando o snippet…" spellcheck="false" />
+    <div class="cmd-results" id="cmdResults"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<!-- SIDEBAR TOOLTIP -->
+<div id="sb-tooltip"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// MARKDOWN PARSER
+// ═══════════════════════════════════════════════════
+function parseMarkdown(md) {
+  if (!md.trim()) return '';
+  let html = md;
+  const escHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    return `<pre data-lang="${escHtml(lang||'')}"><code>${escHtml(code.trimEnd())}</code></pre>`;
+  });
+  html = html.replace(/^(#{1,6})\s+(.+)$/gm, (_, h, t) => {
+    const id = t.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
+    return `<h${h.length} id="${id}">${t}</h${h.length}>`;
+  });
+  html = html.replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '<hr/>');
+  html = html.replace(/^>\s?(.+)$/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/^- \[x\] (.+)$/gim, '<li><input type="checkbox" checked disabled> $1</li>');
+  html = html.replace(/^- \[ \] (.+)$/gim, '<li><input type="checkbox" disabled> $1</li>');
+  html = html.replace(/((?:^[-*+]\s.+\n?)+)/gm, m => {
+    const items = m.trim().split('\n').map(l => `<li>${l.replace(/^[-*+]\s/,'')}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  });
+  html = html.replace(/((?:^\d+\.\s.+\n?)+)/gm, m => {
+    const items = m.trim().split('\n').map(l => `<li>${l.replace(/^\d+\.\s/,'')}</li>`).join('');
+    return `<ol>${items}</ol>`;
+  });
+  html = html.replace(/^\|(.+)\|\n\|[-| :]+\|\n((?:\|.+\|\n?)*)/gm, (_, header, body) => {
+    const ths = header.split('|').map(c=>c.trim()).filter(Boolean).map(c=>`<th>${c}</th>`).join('');
+    const trs = body.trim().split('\n').map(row => {
+      const tds = row.split('|').map(c=>c.trim()).filter(Boolean).map(c=>`<td>${c}</td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+  });
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+  html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1"/>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  html = html.replace(/\n{2,}/g, '\n\n');
+  const lines = html.split('\n\n');
+  html = lines.map(block => {
+    block = block.trim();
+    if (!block) return '';
+    if (/^<(h[1-6]|ul|ol|li|pre|blockquote|table|hr|img)/.test(block)) return block;
+    return `<p>${block.replace(/\n/g,'<br/>')}</p>`;
+  }).join('\n');
+  return html;
+}
+
+// ═══════════════════════════════════════════════════
+// HTML → MARKDOWN (for editable preview sync)
+// ═══════════════════════════════════════════════════
+function htmlToMarkdown(container) {
+  function walk(node) {
+    if (node.nodeType === 3) return node.textContent;
+    if (node.nodeType !== 1) return '';
+    const tag = node.tagName.toLowerCase();
+    const kids = () => Array.from(node.childNodes).map(walk).join('');
+
+    if (tag === 'br') return '\n';
+    if (tag === 'hr') return '\n---\n\n';
+    if (/^h([1-6])$/.test(tag)) {
+      const lv = parseInt(tag[1]);
+      return '\n' + '#'.repeat(lv) + ' ' + kids() + '\n\n';
+    }
+    if (tag === 'p') return kids() + '\n\n';
+    if (tag === 'strong' || tag === 'b') return '**' + kids() + '**';
+    if (tag === 'em' || tag === 'i') return '*' + kids() + '*';
+    if (tag === 'del' || tag === 's') return '~~' + kids() + '~~';
+    if (tag === 'a') {
+      const href = node.getAttribute('href') || '';
+      return '[' + kids() + '](' + href + ')';
+    }
+    if (tag === 'img') {
+      return '![' + (node.getAttribute('alt')||'') + '](' + (node.getAttribute('src')||'') + ')';
+    }
+    if (tag === 'code') {
+      if (node.closest('pre')) return kids();
+      return '`' + kids() + '`';
+    }
+    if (tag === 'pre') {
+      const lang = node.getAttribute('data-lang') || '';
+      const code = node.querySelector('code');
+      const content = code ? code.textContent : kids();
+      return '\n```' + lang + '\n' + content.trimEnd() + '\n```\n\n';
+    }
+    if (tag === 'blockquote') {
+      return kids().trim().split('\n').map(l => '> ' + l).join('\n') + '\n\n';
+    }
+    if (tag === 'ul') {
+      return Array.from(node.children).map(li => {
+        const cb = li.querySelector('input[type="checkbox"]');
+        if (cb) return '- [' + (cb.checked ? 'x' : ' ') + '] ' + li.textContent.trim();
+        return '- ' + Array.from(li.childNodes).map(walk).join('').trim();
+      }).join('\n') + '\n\n';
+    }
+    if (tag === 'ol') {
+      return Array.from(node.children).map((li, i) =>
+        (i+1) + '. ' + Array.from(li.childNodes).map(walk).join('').trim()
+      ).join('\n') + '\n\n';
+    }
+    if (tag === 'li') return '';
+    if (tag === 'table') {
+      const thead = node.querySelector('thead tr');
+      const tbody = node.querySelectorAll('tbody tr');
+      if (!thead) return '';
+      const hs = Array.from(thead.querySelectorAll('th')).map(th => th.textContent.trim());
+      const rows = Array.from(tbody).map(tr =>
+        Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())
+      );
+      const sep = hs.map(() => '---');
+      return '| ' + hs.join(' | ') + ' |\n| ' + sep.join(' | ') + ' |\n' +
+        rows.map(r => '| ' + r.join(' | ') + ' |').join('\n') + '\n\n';
+    }
+    if (['thead','tbody','tr','th','td'].includes(tag)) return '';
+    return kids();
+  }
+  let md = Array.from(container.childNodes).map(walk).join('');
+  return md.replace(/\n{3,}/g, '\n\n').trim();
+}
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const editor    = document.getElementById('editor');
+const preview   = document.getElementById('preview');
+const emptyState = document.getElementById('emptyState');
+const lineNums  = document.getElementById('lineNumbers');
+const wc        = document.getElementById('wc');
+const cc        = document.getElementById('cc');
+const tk        = document.getElementById('tk');
+const cursorPos = document.getElementById('cursorPos');
+
+let tabs = [];
+let activeTabId = null;
+let tabIdCounter = 0;
+let wordWrap = true;
+let previewEditing = false;
+let previewSyncTimer = null;
+let lsSaveTimer = null;
+let openMenuId = null;
+let currentView = 'split';
+
+// ═══════════════════════════════════════════════════
+// TAB MANAGEMENT
+// ═══════════════════════════════════════════════════
+function createTab(name='sin-título', content='') {
+  const id = ++tabIdCounter;
+  const tab = {
+    id, name, content,
+    savedContent: content,
+    undoStack: [content],
+    redoStack: [],
+    fileHandle: null,
+    modified: false
+  };
+  tabs.push(tab);
+  return tab;
+}
+
+function getActiveTab() {
+  return tabs.find(t => t.id === activeTabId) || null;
+}
+
+function switchTab(id) {
+  // Save current editor state to active tab
+  const cur = getActiveTab();
+  if (cur) {
+    cur.content = editor.value;
+  }
+  activeTabId = id;
+  const tab = tabs.find(t => t.id === id);
+  if (!tab) return;
+  editor.value = tab.content;
+  updatePreview();
+  updateCursor();
+  renderTabs();
+  updateModifiedIndicator();
+  if (tocOpen) renderTOC();
+}
+
+function newTab() {
+  const tab = createTab('sin-título', '');
+  renderTabs();
+  switchTab(tab.id);
+  editor.focus();
+  showToast('✓ Nueva pestaña creada');
+}
+
+function closeActiveTab() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  if (tabs.length === 1) {
+    // Don't close last tab, just clear
+    if (tab.content.trim() && !confirm('¿Borrar el contenido de esta pestaña?')) return;
+    tab.content = ''; tab.savedContent = ''; tab.modified = false;
+    editor.value = '';
+    updatePreview();
+    renderTabs();
+    return;
+  }
+  if (tab.modified && !confirm(`¿Cerrar "${tab.name}" sin guardar los cambios?`)) return;
+  const idx = tabs.findIndex(t => t.id === tab.id);
+  tabs.splice(idx, 1);
+  const next = tabs[Math.max(0, idx - 1)];
+  switchTab(next.id);
+  showToast(`✕ Pestaña "${tab.name}" cerrada`);
+}
+
+function renameTab(id, newName) {
+  const tab = tabs.find(t => t.id === id);
+  if (tab && newName.trim()) {
+    tab.name = newName.trim();
+    renderTabs();
+    debouncedSaveToLS();
+  }
+}
+
+function renderTabs() {
+  const list = document.getElementById('tabsList');
+  list.innerHTML = '';
+  tabs.forEach(tab => {
+    const el = document.createElement('div');
+    el.className = 'tab-item' + (tab.id === activeTabId ? ' active' : '') + (tab.modified ? ' modified' : '');
+    el.dataset.id = tab.id;
+    el.innerHTML = `
+      <div class="tab-dot"></div>
+      <span class="tab-label" ondblclick="startRenameTab(${tab.id}, this)">${escHtml(tab.name)}.md</span>
+      <button class="tab-close" onclick="event.stopPropagation(); closeTab(${tab.id})">×</button>
+    `;
+    el.addEventListener('click', (e) => {
+      if (!e.target.closest('.tab-close') && !e.target.closest('input')) switchTab(tab.id);
+    });
+    list.appendChild(el);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function startRenameTab(id, labelEl) {
+  const tab = tabs.find(t => t.id === id);
+  if (!tab) return;
+  const input = document.createElement('input');
+  input.value = tab.name;
+  input.onclick = e => e.stopPropagation();
+  input.onblur = () => { renameTab(id, input.value); };
+  input.onkeydown = e => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') { renderTabs(); }
+    e.stopPropagation();
+  };
+  labelEl.innerHTML = '';
+  labelEl.appendChild(input);
+  input.focus();
+  input.select();
+}
+
+function closeTab(id) {
+  if (id === activeTabId) { closeActiveTab(); return; }
+  const tab = tabs.find(t => t.id === id);
+  if (!tab) return;
+  if (tab.modified && !confirm(`¿Cerrar "${tab.name}" sin guardar?`)) return;
+  tabs = tabs.filter(t => t.id !== id);
+  renderTabs();
+  debouncedSaveToLS();
+}
+
+// ═══════════════════════════════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════════════════════════════
+function saveToLS() {
+  try {
+    const cur = getActiveTab();
+    if (cur) cur.content = editor.value;
+    const state = {
+      tabs: tabs.map(t => ({
+        id: t.id, name: t.name, content: t.content,
+        savedContent: t.savedContent, modified: t.modified
+      })),
+      activeTabId,
+      tabIdCounter,
+      wordWrap,
+      currentView
+    };
+    localStorage.setItem('claudemd_v3', JSON.stringify(state));
+  } catch(e) { console.warn('LS save error:', e); }
+}
+
+function debouncedSaveToLS() {
+  clearTimeout(lsSaveTimer);
+  lsSaveTimer = setTimeout(saveToLS, 600);
+}
+
+function loadFromLS() {
+  try {
+    const raw = localStorage.getItem('claudemd_v3');
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    if (!state.tabs || !state.tabs.length) return false;
+    tabs = state.tabs.map(t => ({
+      ...t,
+      undoStack: [t.content],
+      redoStack: [],
+      fileHandle: null
+    }));
+    tabIdCounter = state.tabIdCounter || tabs.length;
+    activeTabId = null;
+    wordWrap = state.wordWrap !== undefined ? state.wordWrap : true;
+    currentView = state.currentView || 'split';
+    const toActivate = tabs.find(t => t.id === state.activeTabId) || tabs[0];
+    if (toActivate) activeTabId = toActivate.id;
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// FILE SYSTEM ACCESS API
+// ═══════════════════════════════════════════════════
+async function openFile() {
+  if (!window.showOpenFilePicker) { triggerImport(); return; }
+  try {
+    const handles = await window.showOpenFilePicker({
+      multiple: true,
+      types: [{ description: 'Markdown', accept: {'text/markdown': ['.md','.markdown','.txt']} }]
+    });
+    for (const handle of handles) {
+      const file = await handle.getFile();
+      const content = await file.text();
+      const name = file.name.replace(/\.(md|markdown|txt)$/i, '');
+      const existing = tabs.find(t => t.name === name);
+      if (existing) { switchTab(existing.id); continue; }
+      const tab = createTab(name, content);
+      tab.fileHandle = handle;
+      tab.savedContent = content;
+      tab.modified = false;
+      renderTabs();
+      switchTab(tab.id);
+    }
+    showToast(`✓ ${handles.length} archivo(s) abierto(s)`);
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Error al abrir: ' + e.message);
+  }
+}
+
+async function saveFile() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  tab.content = editor.value;
+
+  if (tab.fileHandle) {
+    try {
+      const writable = await tab.fileHandle.createWritable();
+      await writable.write(tab.content);
+      await writable.close();
+      tab.savedContent = tab.content;
+      tab.modified = false;
+      renderTabs();
+      updateModifiedIndicator();
+      debouncedSaveToLS();
+      showToast('✓ Guardado: ' + tab.name + '.md');
+    } catch(e) {
+      showToast('Error al guardar: ' + e.message);
+    }
+  } else {
+    await saveFileAs();
+  }
+}
+
+async function saveFileAs() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  tab.content = editor.value;
+
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: tab.name + '.md',
+        types: [{ description: 'Markdown', accept: {'text/markdown': ['.md']} }]
+      });
+      tab.fileHandle = handle;
+      const writable = await handle.createWritable();
+      await writable.write(tab.content);
+      await writable.close();
+      tab.name = handle.name.replace(/\.md$/i, '');
+      tab.savedContent = tab.content;
+      tab.modified = false;
+      renderTabs();
+      updateModifiedIndicator();
+      debouncedSaveToLS();
+      showToast('✓ Guardado como: ' + tab.name + '.md');
+    } catch(e) {
+      if (e.name !== 'AbortError') downloadMD();
+    }
+  } else {
+    downloadMD();
+  }
+}
+
+function downloadMD() {
+  const tab = getActiveTab();
+  const name = (tab?.name || 'documento') + '.md';
+  const content = editor.value;
+  const blob = new Blob([content], {type:'text/markdown;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Descargado como ' + name);
+}
+
+// ═══════════════════════════════════════════════════
+// TOKEN ESTIMATION (aproximación al tokenizador de Claude)
+// ═══════════════════════════════════════════════════
+function estimateTokens(text) {
+  if (!text) return 0;
+  // Heurística mixta: combina conteo por caracteres y por "piezas".
+  // Para texto natural ES/EN, los tokenizadores BPE producen ~1 token cada
+  // ~3.7 caracteres. La puntuación, símbolos y saltos de línea suelen ser
+  // tokens propios, así que los contamos aparte para mayor fidelidad.
+  const chars = text.length;
+  const byChars = chars / 3.7;
+  // Piezas: palabras + signos de puntuación/símbolos sueltos
+  const pieces = (text.match(/[\w\u00C0-\u017F]+|[^\s\w]/g) || []).length;
+  const byPieces = pieces * 1.3;
+  // Media ponderada de ambas estimaciones
+  return Math.max(1, Math.round((byChars + byPieces) / 2));
+}
+
+// ═══════════════════════════════════════════════════
+// PREVIEW
+// ═══════════════════════════════════════════════════
+function updatePreview() {
+  if (previewEditing) return;
+  const val = editor.value;
+  const parsed = parseMarkdown(val);
+  if (!val.trim()) {
+    preview.innerHTML = '';
+    preview.appendChild(emptyState);
+  } else {
+    emptyState.remove();
+    preview.innerHTML = parsed;
+  }
+  const words = val.trim() ? val.trim().split(/\s+/).length : 0;
+  wc.textContent = words;
+  cc.textContent = val.length;
+  tk.textContent = estimateTokens(val);
+  if (wordWrap) {
+    const lines = val.split('\n').length;
+    lineNums.innerHTML = Array.from({length:lines}, (_,i)=>i+1).join('<br/>');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// EDITABLE PREVIEW SYNC (opt-in: solo-lectura por defecto)
+// ═══════════════════════════════════════════════════
+let previewEditEnabled = false;
+
+function togglePreviewEdit() {
+  previewEditEnabled = !previewEditEnabled;
+  const btn = document.getElementById('previewEditToggle');
+  preview.contentEditable = previewEditEnabled ? 'true' : 'false';
+  btn.classList.toggle('active', previewEditEnabled);
+  if (previewEditEnabled) {
+    btn.textContent = '✓ Editando';
+    btn.title = 'Desactivar edición directa (vuelve a solo-lectura)';
+    preview.classList.add('editing-mode');
+    preview.focus();
+    showToast('✎ Edición directa activada — los cambios se convierten a Markdown');
+  } else {
+    btn.textContent = '✎ Editar aquí';
+    btn.title = 'Activar edición directa en la vista previa';
+    preview.classList.remove('editing-mode');
+    // Sincroniza una última vez al salir del modo edición
+    if (previewEditing) commitPreviewEdit();
+    previewEditing = false;
+    showToast('🔒 Vista previa en solo-lectura');
+  }
+}
+
+function commitPreviewEdit() {
+  const md = htmlToMarkdown(preview);
+  if (md !== editor.value) {
+    saveToUndo();
+    editor.value = md;
+    markTabModified();
+    debouncedSaveToLS();
+    setTimeout(() => { previewEditing = false; updatePreview(); }, 60);
+  }
+}
+
+preview.addEventListener('focus', () => {
+  if (!previewEditEnabled) return;
+  previewEditing = true;
+  preview.classList.add('editing-mode');
+});
+
+preview.addEventListener('blur', () => {
+  if (!previewEditEnabled) return;
+  clearTimeout(previewSyncTimer);
+  previewEditing = false;
+  commitPreviewEdit();
+});
+
+preview.addEventListener('input', () => {
+  if (!previewEditEnabled) return;
+  clearTimeout(previewSyncTimer);
+  previewSyncTimer = setTimeout(() => {
+    const md = htmlToMarkdown(preview);
+    editor.value = md;
+    markTabModified();
+    updateStats();
+    debouncedSaveToLS();
+  }, 500);
+});
+
+// Al hacer clic en un encabezado de la preview (en solo-lectura), salta al editor
+preview.addEventListener('click', (e) => {
+  if (previewEditEnabled) return; // no interferir con la edición directa
+  const h = e.target.closest('h1,h2,h3,h4,h5,h6');
+  if (!h) return;
+  const hs = Array.from(preview.querySelectorAll('h1,h2,h3,h4,h5,h6'));
+  const idx = hs.indexOf(h);
+  const headings = getHeadings();
+  if (idx < 0 || !headings[idx]) return;
+  scrollEditorToPos(headings[idx].pos, headings[idx].text.length + headings[idx].level + 1);
+  // destello también en la propia preview
+  h.classList.remove('flash-target');
+  void h.offsetWidth;
+  h.classList.add('flash-target');
+  setTimeout(() => h.classList.remove('flash-target'), 2000);
+});
+
+// Prevent preview contenteditable from getting focus when in editor-only mode
+preview.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveFile();
+  }
+});
+
+function updateStats() {
+  const val = editor.value;
+  const words = val.trim() ? val.trim().split(/\s+/).length : 0;
+  wc.textContent = words;
+  cc.textContent = val.length;
+  tk.textContent = estimateTokens(val);
+}
+
+// ═══════════════════════════════════════════════════
+// UNDO / REDO
+// ═══════════════════════════════════════════════════
+function saveToUndo() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  if (tab.undoStack[tab.undoStack.length-1] !== editor.value) {
+    tab.undoStack.push(editor.value);
+    if (tab.undoStack.length > 200) tab.undoStack.shift();
+    tab.redoStack = [];
+  }
+}
+
+function undo() {
+  const tab = getActiveTab();
+  if (!tab || tab.undoStack.length <= 1) return;
+  tab.redoStack.push(tab.undoStack.pop());
+  editor.value = tab.undoStack[tab.undoStack.length-1];
+  updatePreview();
+}
+
+function redo() {
+  const tab = getActiveTab();
+  if (!tab || !tab.redoStack.length) return;
+  const val = tab.redoStack.pop();
+  tab.undoStack.push(val);
+  editor.value = val;
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════
+// EDITOR EVENTS
+// ═══════════════════════════════════════════════════
+editor.addEventListener('input', () => {
+  saveToUndo();
+  updatePreview();
+  markTabModified();
+  debouncedSaveToLS();
+  if (tocOpen) renderTOC();
+});
+
+editor.addEventListener('keyup', updateCursor);
+editor.addEventListener('click', () => {
+  updateCursor();
+  syncEditorClickToPreview();
+});
+
+// Al hacer clic en el editor, resalta la sección equivalente en la preview
+function syncEditorClickToPreview() {
+  if (currentView !== 'split') return;
+  const pos = editor.selectionStart;
+  const headings = getHeadings();
+  if (!headings.length) return;
+  // Encuentra el último encabezado en o antes del cursor
+  let idx = -1;
+  for (let i = 0; i < headings.length; i++) {
+    if (headings[i].pos <= pos) idx = i; else break;
+  }
+  if (idx < 0) return;
+  const hs = preview.querySelectorAll('h1,h2,h3,h4,h5,h6');
+  const target = hs[idx];
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  target.classList.remove('flash-target');
+  void target.offsetWidth;
+  target.classList.add('flash-target');
+  setTimeout(() => target.classList.remove('flash-target'), 2000);
+}
+
+editor.addEventListener('keydown', e => {
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = editor.selectionStart, en = editor.selectionEnd;
+    editor.value = editor.value.substring(0,s) + '  ' + editor.value.substring(en);
+    editor.selectionStart = editor.selectionEnd = s + 2;
+    saveToUndo(); updatePreview();
+  }
+  if (ctrl && e.key === 'z') { e.preventDefault(); undo(); }
+  if (ctrl && e.key === 'y') { e.preventDefault(); redo(); }
+  if (ctrl && e.key === 's' && !e.shiftKey) { e.preventDefault(); saveFile(); }
+  if (ctrl && e.key === 's' && e.shiftKey) { e.preventDefault(); saveFileAs(); }
+  if (ctrl && e.key === 'b') { e.preventDefault(); wrap('**','**'); }
+  if (ctrl && e.key === 'i') { e.preventDefault(); wrap('*','*'); }
+  if (ctrl && e.key === 'n') { e.preventDefault(); newTab(); }
+  if (ctrl && e.key === 'o') { e.preventDefault(); openFile(); }
+  if (ctrl && e.key === 'w') { e.preventDefault(); closeActiveTab(); }
+  if (ctrl && e.key === 'f') { e.preventDefault(); openFind(false); }
+  if (ctrl && (e.key === 'h' || (e.key === 'f' && e.altKey))) { e.preventDefault(); openFind(true); }
+  if (ctrl && e.key === 'k') { e.preventDefault(); openCmd(); }
+});
+
+function updateCursor() {
+  const val = editor.value.substring(0, editor.selectionStart);
+  const lines = val.split('\n');
+  cursorPos.textContent = `Ln ${lines.length}, Col ${lines[lines.length-1].length + 1}`;
+}
+
+function markTabModified() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  tab.content = editor.value;
+  const wasModified = tab.modified;
+  tab.modified = tab.content !== tab.savedContent;
+  if (wasModified !== tab.modified) {
+    renderTabs();
+    updateModifiedIndicator();
+  }
+}
+
+function updateModifiedIndicator() {
+  const tab = getActiveTab();
+  const el = document.getElementById('modifiedIndicator');
+  if (tab?.modified) {
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// FIND & REPLACE
+// ═══════════════════════════════════════════════════
+const findPanel   = document.getElementById('findPanel');
+const findInput   = document.getElementById('findInput');
+const replaceInput= document.getElementById('replaceInput');
+const findCountEl  = document.getElementById('findCount');
+let findMatches = [];      // array de {start, end}
+let findIndex = -1;        // coincidencia activa
+let findOpts = { case:false, word:false, regex:false };
+
+function buildFindRegex() {
+  let q = findInput.value;
+  if (!q) return null;
+  try {
+    if (!findOpts.regex) q = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (findOpts.word) q = '\\b' + q + '\\b';
+    const flags = 'g' + (findOpts.case ? '' : 'i');
+    return new RegExp(q, flags);
+  } catch(e) {
+    return 'error';
+  }
+}
+
+function runFind(keepIndex=false) {
+  const re = buildFindRegex();
+  findMatches = [];
+  if (re === 'error') { findCountEl.textContent = 'regex ✕'; findCountEl.classList.add('nores'); return; }
+  if (re) {
+    const text = editor.value;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      findMatches.push({ start: m.index, end: m.index + m[0].length });
+      if (m[0].length === 0) re.lastIndex++; // evita bucle infinito
+    }
+  }
+  if (!keepIndex || findIndex >= findMatches.length) {
+    // Selecciona la coincidencia más cercana al cursor
+    const cur = editor.selectionStart;
+    findIndex = findMatches.findIndex(mm => mm.start >= cur);
+    if (findIndex === -1) findIndex = findMatches.length ? 0 : -1;
+  }
+  updateFindUI();
+}
+
+// Solo actualiza el contador. NO toca el editor (no roba el foco al escribir).
+function updateFindUI() {
+  if (!findMatches.length) {
+    findCountEl.textContent = findInput.value ? '0 resultados' : '0/0';
+    findCountEl.classList.toggle('nores', !!findInput.value);
+    return;
+  }
+  findCountEl.classList.remove('nores');
+  findCountEl.textContent = `${findIndex+1}/${findMatches.length}`;
+}
+
+// Salta a la coincidencia activa en el editor. Solo se llama desde Enter/flechas.
+function highlightMatch() {
+  if (findIndex < 0 || !findMatches[findIndex]) return;
+  const { start, end } = findMatches[findIndex];
+  editor.focus();
+  editor.setSelectionRange(start, end);
+  flashEditorRange(start, end);
+  const before = editor.value.substring(0, start);
+  const line = before.split('\n').length;
+  const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 25;
+  const target = (line - 1) * lineHeight;
+  const area = document.getElementById('editorArea');
+  if (target < area.scrollTop || target > area.scrollTop + area.clientHeight - lineHeight*2) {
+    area.scrollTop = Math.max(0, target - area.clientHeight/2);
+  }
+  // Devuelve el foco al buscador para seguir navegando con Enter
+  setTimeout(() => { if (findPanel.classList.contains('open')) findInput.focus(); }, 0);
+}
+
+function findNav(dir) {
+  if (!findMatches.length) return;
+  findIndex = (findIndex + dir + findMatches.length) % findMatches.length;
+  updateFindUI();
+  highlightMatch();
+}
+
+function replaceOne() {
+  if (findIndex < 0 || !findMatches[findIndex]) { runFind(); return; }
+  const { start, end } = findMatches[findIndex];
+  saveToUndo();
+  const rep = replaceInput.value;
+  editor.value = editor.value.substring(0, start) + rep + editor.value.substring(end);
+  editor.setSelectionRange(start, start + rep.length);
+  markTabModified(); updatePreview(); debouncedSaveToLS();
+  runFind(true);
+  if (findMatches.length) { if (findIndex >= findMatches.length) findIndex = 0; updateFindUI(); }
+  showToast('✓ Reemplazado');
+}
+
+function replaceAll() {
+  const re = buildFindRegex();
+  if (!re || re === 'error' || !findMatches.length) { showToast('Sin coincidencias'); return; }
+  saveToUndo();
+  const count = findMatches.length;
+  editor.value = editor.value.replace(re, replaceInput.value);
+  markTabModified(); updatePreview(); debouncedSaveToLS();
+  runFind();
+  showToast(`✓ ${count} reemplazo(s) realizados`);
+}
+
+function toggleFindOpt(opt) {
+  findOpts[opt] = !findOpts[opt];
+  const map = { case:'findCase', word:'findWord', regex:'findRegex' };
+  document.getElementById(map[opt]).classList.toggle('active', findOpts[opt]);
+  runFind();
+}
+
+function openFind(withReplace=false) {
+  findPanel.classList.add('open');
+  document.getElementById('replaceRow').style.display = withReplace ? 'flex' : 'none';
+  const sel = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+  if (sel && !sel.includes('\n')) findInput.value = sel;
+  findInput.focus();
+  findInput.select();
+  runFind();
+}
+
+function closeFind() {
+  findPanel.classList.remove('open');
+  editor.focus();
+}
+
+findInput.addEventListener('input', () => runFind());
+findInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); findNav(e.shiftKey ? -1 : 1); }
+  if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+});
+replaceInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); replaceOne(); }
+  if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+});
+
+// ═══════════════════════════════════════════════════
+// WRAP & INSERT
+// ═══════════════════════════════════════════════════
+function wrap(before, after) {
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const sel = editor.value.substring(s, e) || 'texto';
+  const repl = before + sel + after;
+  editor.value = editor.value.substring(0,s) + repl + editor.value.substring(e);
+  editor.selectionStart = s + before.length;
+  editor.selectionEnd   = s + before.length + sel.length;
+  editor.focus();
+  saveToUndo(); updatePreview(); markTabModified(); debouncedSaveToLS();
+}
+
+const blocks = {
+  link:       () => '[Texto del enlace](https://url.com)',
+  image:      () => '![Descripción](https://url-imagen.com)',
+  ul:         () => '- Elemento uno\n- Elemento dos\n- Elemento tres',
+  ol:         () => '1. Primero\n2. Segundo\n3. Tercero',
+  task:       () => '- [ ] Tarea pendiente\n- [x] Tarea completada',
+  blockquote: () => '> "Una cita memorable."',
+  code:       () => '```js\n// Tu código aquí\nconsole.log("Hola Claude");\n```',
+  table:      () => '| Columna A | Columna B | Columna C |\n|-----------|-----------|----------|\n| Dato 1    | Dato 2    | Dato 3   |\n| Dato 4    | Dato 5    | Dato 6   |',
+  hr:         () => '\n---\n',
+};
+
+function insertBlock(type) {
+  const snip = blocks[type]();
+  const s = editor.selectionStart;
+  const before = editor.value.substring(0, s);
+  const after  = editor.value.substring(s);
+  const prefix = (before.length && !before.endsWith('\n')) ? '\n\n' : '';
+  const suffix = (!after.startsWith('\n')) ? '\n\n' : '\n';
+  editor.value = before + prefix + snip + suffix + after;
+  editor.selectionStart = editor.selectionEnd = s + prefix.length + snip.length + suffix.length;
+  editor.focus();
+  saveToUndo(); updatePreview(); markTabModified(); debouncedSaveToLS();
+}
+
+function insertHeading(level) {
+  if (!level) return;
+  const s = editor.selectionStart;
+  const line_start = editor.value.lastIndexOf('\n', s - 1) + 1;
+  const prefix = '#'.repeat(+level) + ' ';
+  editor.value = editor.value.substring(0, line_start) + prefix + editor.value.substring(line_start);
+  editor.focus();
+  saveToUndo(); updatePreview(); markTabModified(); debouncedSaveToLS();
+}
+
+// ═══════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════
+function copyMD() {
+  navigator.clipboard.writeText(editor.value).then(() => showToast('✓ Copiado al portapapeles'));
+}
+
+function clearEditor() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  if (tab.content.trim() && !confirm('¿Borrar todo el contenido y limpiar el almacenamiento local? Esta acción no se puede deshacer.')) return;
+  tab.content = ''; tab.savedContent = ''; tab.modified = false;
+  editor.value = '';
+  updatePreview();
+  renderTabs();
+  updateModifiedIndicator();
+  try { localStorage.removeItem('claudemd_v3'); } catch(e) {}
+  showToast('✓ Limpiado y almacenamiento borrado');
+}
+
+function showExample() {
+  const tab = getActiveTab();
+  if (!tab) return;
+  if (tab.content.trim() && !confirm('¿Reemplazar el contenido actual con el ejemplo?')) return;
+  saveToUndo();
+  editor.value = initialMD;
+  updatePreview();
+  markTabModified();
+  debouncedSaveToLS();
+  showToast('✓ Ejemplo cargado');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ═══════════════════════════════════════════════════
+// VIEW MODES
+// ═══════════════════════════════════════════════════
+function setView(mode) {
+  currentView = mode;
+  const ep = document.getElementById('editorPanel');
+  const pp = document.getElementById('previewPanel');
+  const dv = document.getElementById('divider');
+  const sb = document.getElementById('leftSidebar');
+
+  ['v-split','v-editor','v-preview'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  document.getElementById('v-'+mode)?.classList.add('active');
+
+  ep.classList.remove('hidden');
+  pp.classList.remove('hidden');
+  dv.style.display = 'block';
+  sb.style.display = 'flex';
+
+  if (mode === 'split') {
+    // Restaura el reparto 50/50 (o lo que el divisor haya fijado)
+    ep.style.flex = '';
+    pp.style.flex = '';
+  } else if (mode === 'editor') {
+    pp.classList.add('hidden');
+    dv.style.display = 'none';
+    ep.style.flex = '1 1 100%';   // ocupa todo el ancho
+  } else if (mode === 'preview') {
+    ep.classList.add('hidden');
+    sb.style.display = 'none';
+    dv.style.display = 'none';
+    pp.style.flex = '1 1 100%';   // ocupa todo el ancho
+  }
+  debouncedSaveToLS();
+}
+
+// ═══════════════════════════════════════════════════
+// TABLA DE CONTENIDOS (OUTLINE)
+// ═══════════════════════════════════════════════════
+let tocOpen = false;
+
+function getHeadings() {
+  const lines = editor.value.split('\n');
+  const headings = [];
+  let inFence = false;
+  let charPos = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    if (!inFence) {
+      const m = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
+      if (m) {
+        headings.push({ level: m[1].length, text: m[2].trim(), line: i, pos: charPos });
+      }
+    }
+    charPos += line.length + 1; // +1 por el \n
+  }
+  return headings;
+}
+
+function renderTOC() {
+  const list = document.getElementById('tocList');
+  const headings = getHeadings();
+  if (!headings.length) {
+    list.innerHTML = '<div class="toc-empty">No hay encabezados.<br>Usa # para crear secciones.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  headings.forEach((h, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'toc-item lvl' + h.level;
+    btn.textContent = h.text;
+    btn.title = h.text;
+    btn.onclick = () => jumpToHeading(h, i);
+    list.appendChild(btn);
+  });
+}
+
+// Salta a un encabezado y lo resalta en editor Y preview
+function jumpToHeading(h, idx) {
+  scrollEditorToPos(h.pos, h.text.length + h.level + 1);
+  scrollPreviewToHeading(idx);
+}
+
+// ── Desplazamiento + flash en el EDITOR ──
+function scrollEditorToPos(pos, selLen=0) {
+  const before = editor.value.substring(0, pos);
+  const line = before.split('\n').length;
+  const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 25;
+  const area = document.getElementById('editorArea');
+  area.scrollTop = Math.max(0, (line - 1) * lineHeight - 60);
+  editor.focus();
+  editor.setSelectionRange(pos, pos + selLen);
+  updateCursor();
+  flashEditorRange(pos, pos + selLen);
+}
+
+// Crea un overlay temporal sobre la línea de la coincidencia en el textarea
+function flashEditorRange(start) {
+  const area = document.getElementById('editorArea');
+  const before = editor.value.substring(0, start);
+  const line = before.split('\n').length;
+  const lineHeight = parseFloat(getComputedStyle(editor).lineHeight) || 25;
+  const padTop = parseFloat(getComputedStyle(editor).paddingTop) || 18;
+  const flash = document.createElement('div');
+  flash.className = 'editor-flash';
+  flash.style.top = (padTop + (line - 1) * lineHeight) + 'px';
+  flash.style.height = lineHeight + 'px';
+  area.appendChild(flash);
+  setTimeout(() => flash.remove(), 2000);
+}
+
+// ── Desplazamiento + flash en la PREVIEW ──
+function scrollPreviewToHeading(idx) {
+  // Solo si la preview está visible
+  if (currentView === 'editor') return;
+  const hs = preview.querySelectorAll('h1,h2,h3,h4,h5,h6');
+  const target = hs[idx];
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  target.classList.remove('flash-target');
+  void target.offsetWidth; // reinicia la animación
+  target.classList.add('flash-target');
+  setTimeout(() => target.classList.remove('flash-target'), 2000);
+}
+
+function toggleTOC() {
+  tocOpen = !tocOpen;
+  document.getElementById('tocPanel').classList.toggle('open', tocOpen);
+  document.getElementById('tocToggleBtn').classList.toggle('active', tocOpen);
+  if (tocOpen) renderTOC();
+}
+
+
+function applyWordWrap() {
+  editor.style.whiteSpace = wordWrap ? 'pre-wrap' : 'pre';
+  editor.style.overflowWrap = wordWrap ? 'break-word' : 'normal';
+  editor.style.overflowX = wordWrap ? 'hidden' : 'auto';
+  lineNums.style.display = wordWrap ? 'none' : 'block';
+  document.getElementById('wrapStatus').style.display = wordWrap ? 'inline' : 'none';
+  document.getElementById('ww-toggle-btn').textContent = wordWrap ? '☑ Ajuste de línea (activo)' : '☐ Ajuste de línea (inactivo)';
+}
+
+function toggleWordWrap() {
+  wordWrap = !wordWrap;
+  applyWordWrap();
+  debouncedSaveToLS();
+  showToast(wordWrap ? '✓ Ajuste de línea activado' : '✓ Ajuste de línea desactivado');
+}
+
+// ═══════════════════════════════════════════════════
+// DRAG DIVIDER
+// ═══════════════════════════════════════════════════
+const divider = document.getElementById('divider');
+const workspace = document.getElementById('workspace');
+let dragging = false;
+
+divider.addEventListener('mousedown', e => { dragging = true; divider.classList.add('dragging'); e.preventDefault(); });
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const rect = workspace.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width * 100;
+  const clamped = Math.max(20, Math.min(80, pct));
+  document.getElementById('editorPanel').style.flex = `0 0 ${clamped}%`;
+  document.getElementById('previewPanel').style.flex = `0 0 ${100-clamped-0.3}%`;
+});
+document.addEventListener('mouseup', () => { dragging = false; divider.classList.remove('dragging'); });
+
+// ═══════════════════════════════════════════════════
+// IMPORT FILE
+// ═══════════════════════════════════════════════════
+function triggerImport() { document.getElementById('fileImport').click(); }
+
+function handleFileImport(event) {
+  const files = Array.from(event.target.files);
+  files.forEach(loadFileAsTab);
+  event.target.value = '';
+}
+
+function loadFileAsTab(file) {
+  if (!file) return;
+  const allowed = ['.md','.markdown','.txt'];
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  if (!allowed.includes(ext)) { showToast('⚠ Solo .md, .markdown o .txt'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const content = e.target.result;
+    const name = file.name.replace(/\.(md|markdown|txt)$/i, '');
+    const existing = tabs.find(t => t.name === name);
+    if (existing) {
+      if (!confirm(`La pestaña "${name}" ya existe. ¿Reemplazar su contenido?`)) return;
+      existing.content = content;
+      switchTab(existing.id);
+      return;
+    }
+    const tab = createTab(name, content);
+    tab.savedContent = content;
+    tab.modified = false;
+    renderTabs();
+    switchTab(tab.id);
+    showToast('✓ Importado: ' + file.name);
+  };
+  reader.onerror = () => showToast('✕ Error al leer el archivo');
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ═══════════════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════════════
+const dropOverlay = document.getElementById('dropOverlay');
+let dragCounter = 0;
+document.addEventListener('dragenter', e => { if (e.dataTransfer.types.includes('Files')) { dragCounter++; dropOverlay.classList.add('active'); } });
+document.addEventListener('dragleave', e => { dragCounter--; if (dragCounter <= 0) { dragCounter=0; dropOverlay.classList.remove('active'); } });
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  dragCounter = 0;
+  dropOverlay.classList.remove('active');
+  Array.from(e.dataTransfer.files).forEach(loadFileAsTab);
+});
+
+// ═══════════════════════════════════════════════════
+// MENU SYSTEM
+// ═══════════════════════════════════════════════════
+function toggleMenu(id) {
+  if (openMenuId === id) { closeMenu(); return; }
+  closeMenu();
+  const dd = document.getElementById('dd-' + id);
+  const btn = document.querySelector(`#mg-${id} .menu-btn`);
+  if (dd) { dd.classList.add('open'); }
+  if (btn) btn.classList.add('open');
+  openMenuId = id;
+}
+function closeMenu() {
+  if (openMenuId) {
+    document.getElementById('dd-' + openMenuId)?.classList.remove('open');
+    document.querySelector(`#mg-${openMenuId} .menu-btn`)?.classList.remove('open');
+    openMenuId = null;
+  }
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.menu-group')) closeMenu();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeMenu();
+    if (document.getElementById('settingsDrawer').classList.contains('open')) closeSettings();
+  }
+});
+
+// Atajos globales de búsqueda (funcionan aunque el foco no esté en el editor)
+document.addEventListener('keydown', e => {
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (ctrl && e.key === 'k') {
+    e.preventDefault();
+    if (cmdOverlay.classList.contains('open')) closeCmd(); else openCmd();
+    return;
+  }
+  if (ctrl && e.key === 'f' && document.activeElement !== editor) {
+    if (currentView === 'preview') return;
+    e.preventDefault(); openFind(false);
+  }
+  if (ctrl && e.key === 'h' && document.activeElement !== editor) {
+    if (currentView === 'preview') return;
+    e.preventDefault(); openFind(true);
+  }
+});
+
+// ═══════════════════════════════════════════════════
+// SIDEBAR TOOLTIPS
+// ═══════════════════════════════════════════════════
+const sbTooltip = document.getElementById('sb-tooltip');
+document.querySelectorAll('.sb-btn[data-tip]').forEach(btn => {
+  btn.addEventListener('mouseenter', () => {
+    const rect = btn.getBoundingClientRect();
+    sbTooltip.textContent = btn.getAttribute('data-tip');
+    sbTooltip.style.left = (rect.right + 10) + 'px';
+    sbTooltip.style.top = (rect.top + rect.height/2 - 11) + 'px';
+    sbTooltip.style.opacity = '1';
+  });
+  btn.addEventListener('mouseleave', () => { sbTooltip.style.opacity = '0'; });
+});
+
+// ═══════════════════════════════════════════════════
+// COMMAND PALETTE + SNIPPETS DE PROMPT
+// ═══════════════════════════════════════════════════
+const cmdOverlay = document.getElementById('cmdOverlay');
+const cmdInput   = document.getElementById('cmdInput');
+const cmdResults = document.getElementById('cmdResults');
+let cmdSelIndex = 0;
+let cmdFiltered = [];
+
+// Inserta texto en la posición del cursor del editor
+function insertSnippet(text) {
+  const s = editor.selectionStart;
+  const before = editor.value.substring(0, s);
+  const after  = editor.value.substring(editor.selectionEnd);
+  const prefix = (before.length && !before.endsWith('\n')) ? '\n\n' : '';
+  const suffix = (after.length && !after.startsWith('\n')) ? '\n\n' : '';
+  editor.value = before + prefix + text + suffix + after;
+  const caret = s + prefix.length + text.length;
+  editor.selectionStart = editor.selectionEnd = caret;
+  editor.focus();
+  saveToUndo(); updatePreview(); markTabModified(); debouncedSaveToLS();
+}
+
+// Snippets pensados para construir prompts y archivos para Claude
+const promptSnippets = {
+  rol:      `## Rol\n\nEres [describe el rol: experto en…, asistente de…]. Tu objetivo es [objetivo principal].`,
+  contexto: `## Contexto\n\n[Información de fondo que el modelo necesita para entender la tarea.]`,
+  tarea:    `## Tarea\n\n[Describe con precisión qué debe hacer el modelo, paso a paso si conviene.]`,
+  reglas:   `## Reglas\n\n- [Regla 1]\n- [Regla 2]\n- No [restricción]`,
+  formato:  `## Formato de salida\n\nResponde en [formato: Markdown / JSON / lista]. Estructura:\n\n\`\`\`\n[esquema esperado]\n\`\`\``,
+  ejemplos: `## Ejemplos\n\n<ejemplo>\nEntrada: [ejemplo de entrada]\nSalida: [salida esperada]\n</ejemplo>`,
+  pasos:    `Piensa paso a paso antes de responder. Razona dentro de <pensamiento></pensamiento> y da la respuesta final fuera.`,
+  xmltag:   `<instrucciones>\n[Tus instrucciones aquí]\n</instrucciones>`,
+  full:     `## Rol\n\nEres [rol].\n\n## Contexto\n\n[contexto]\n\n## Tarea\n\n[tarea]\n\n## Reglas\n\n- [regla]\n\n## Formato de salida\n\n[formato]`,
+};
+
+// Catálogo de comandos
+function buildCommands() {
+  return [
+    { group:'Archivo', icon:'💾', name:'Guardar', kbd:'Ctrl+S', run:saveFile },
+    { group:'Archivo', icon:'💾', name:'Guardar como…', kbd:'Ctrl+⇧+S', run:saveFileAs },
+    { group:'Archivo', icon:'⬇', name:'Descargar .md', run:downloadMD },
+    { group:'Archivo', icon:'⎘', name:'Copiar Markdown', run:copyMD },
+    { group:'Archivo', icon:'📄', name:'Nueva pestaña', kbd:'Ctrl+N', run:newTab },
+    { group:'Archivo', icon:'📂', name:'Abrir archivo…', kbd:'Ctrl+O', run:openFile },
+    { group:'Editar', icon:'🔍', name:'Buscar', kbd:'Ctrl+F', run:()=>openFind(false) },
+    { group:'Editar', icon:'⇄', name:'Buscar y reemplazar', kbd:'Ctrl+H', run:()=>openFind(true) },
+    { group:'Editar', icon:'↩', name:'Deshacer', kbd:'Ctrl+Z', run:undo },
+    { group:'Editar', icon:'↪', name:'Rehacer', kbd:'Ctrl+Y', run:redo },
+    { group:'Ver', icon:'⊟', name:'Vista dividida', run:()=>setView('split') },
+    { group:'Ver', icon:'✏', name:'Solo editor', run:()=>setView('editor') },
+    { group:'Ver', icon:'👁', name:'Solo vista previa', run:()=>setView('preview') },
+    { group:'Ver', icon:'☰', name:'Mostrar/ocultar índice', run:toggleTOC },
+    { group:'Ver', icon:'↵', name:'Ajuste de línea', run:toggleWordWrap },
+    { group:'Ver', icon:'✦', name:'Apariencia / ajustes visuales', run:openSettings },
+    { group:'Formato', icon:'H', name:'Encabezado 1', run:()=>insertHeading(1) },
+    { group:'Formato', icon:'H', name:'Encabezado 2', run:()=>insertHeading(2) },
+    { group:'Formato', icon:'𝐁', name:'Negrita', kbd:'Ctrl+B', run:()=>wrap('**','**') },
+    { group:'Formato', icon:'𝐼', name:'Cursiva', kbd:'Ctrl+I', run:()=>wrap('*','*') },
+    { group:'Formato', icon:'⊞', name:'Insertar tabla', run:()=>insertBlock('table') },
+    { group:'Formato', icon:'</>', name:'Bloque de código', run:()=>insertBlock('code') },
+    { group:'Formato', icon:'☑', name:'Lista de tareas', run:()=>insertBlock('task') },
+    { group:'Snippet de prompt', icon:'✦', name:'Estructura completa de prompt', run:()=>insertSnippet(promptSnippets.full) },
+    { group:'Snippet de prompt', icon:'✦', name:'Sección: Rol', run:()=>insertSnippet(promptSnippets.rol) },
+    { group:'Snippet de prompt', icon:'✦', name:'Sección: Contexto', run:()=>insertSnippet(promptSnippets.contexto) },
+    { group:'Snippet de prompt', icon:'✦', name:'Sección: Tarea', run:()=>insertSnippet(promptSnippets.tarea) },
+    { group:'Snippet de prompt', icon:'✦', name:'Sección: Reglas', run:()=>insertSnippet(promptSnippets.reglas) },
+    { group:'Snippet de prompt', icon:'✦', name:'Sección: Formato de salida', run:()=>insertSnippet(promptSnippets.formato) },
+    { group:'Snippet de prompt', icon:'✦', name:'Sección: Ejemplos (few-shot)', run:()=>insertSnippet(promptSnippets.ejemplos) },
+    { group:'Snippet de prompt', icon:'✦', name:'Instrucción: pensar paso a paso', run:()=>insertSnippet(promptSnippets.pasos) },
+    { group:'Snippet de prompt', icon:'✦', name:'Etiqueta XML de instrucciones', run:()=>insertSnippet(promptSnippets.xmltag) },
+  ];
+}
+
+function openCmd() {
+  cmdOverlay.classList.add('open');
+  cmdInput.value = '';
+  cmdSelIndex = 0;
+  filterCmd();
+  cmdInput.focus();
+}
+function closeCmd() {
+  cmdOverlay.classList.remove('open');
+  editor.focus();
+}
+
+function filterCmd() {
+  const q = cmdInput.value.toLowerCase().trim();
+  const all = buildCommands();
+  cmdFiltered = q
+    ? all.filter(c => (c.name + ' ' + c.group).toLowerCase().includes(q))
+    : all;
+  if (cmdSelIndex >= cmdFiltered.length) cmdSelIndex = 0;
+  renderCmd();
+}
+
+function renderCmd() {
+  if (!cmdFiltered.length) {
+    cmdResults.innerHTML = '<div class="cmd-empty">Sin coincidencias</div>';
+    return;
+  }
+  cmdResults.innerHTML = '';
+  let lastGroup = null;
+  cmdFiltered.forEach((c, i) => {
+    if (c.group !== lastGroup) {
+      const gl = document.createElement('div');
+      gl.className = 'cmd-group-label';
+      gl.textContent = c.group;
+      cmdResults.appendChild(gl);
+      lastGroup = c.group;
+    }
+    const item = document.createElement('div');
+    item.className = 'cmd-item' + (i === cmdSelIndex ? ' sel' : '');
+    item.innerHTML = `<span class="cmd-icon">${c.icon}</span><span class="cmd-name">${escHtml(c.name)}</span>${c.kbd ? `<span class="cmd-kbd">${c.kbd}</span>` : ''}`;
+    item.onclick = () => runCmd(i);
+    item.onmouseenter = () => { cmdSelIndex = i; updateCmdSel(); };
+    cmdResults.appendChild(item);
+  });
+}
+
+function updateCmdSel() {
+  cmdResults.querySelectorAll('.cmd-item').forEach((el, i) => {
+    el.classList.toggle('sel', i === cmdSelIndex);
+  });
+  const sel = cmdResults.querySelectorAll('.cmd-item')[cmdSelIndex];
+  if (sel) sel.scrollIntoView({ block:'nearest' });
+}
+
+function runCmd(i) {
+  const c = cmdFiltered[i];
+  if (!c) return;
+  closeCmd();
+  setTimeout(() => c.run(), 30);
+}
+
+cmdInput.addEventListener('input', () => { cmdSelIndex = 0; filterCmd(); });
+cmdInput.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); cmdSelIndex = Math.min(cmdSelIndex+1, cmdFiltered.length-1); updateCmdSel(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); cmdSelIndex = Math.max(cmdSelIndex-1, 0); updateCmdSel(); }
+  else if (e.key === 'Enter') { e.preventDefault(); runCmd(cmdSelIndex); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeCmd(); }
+});
+cmdOverlay.addEventListener('click', e => { if (e.target === cmdOverlay) closeCmd(); });
+
+// ═══════════════════════════════════════════════════
+// EXAMPLE TEXT
+// ═══════════════════════════════════════════════════
+const initialMD = `# Bienvenido a Claude MD Editor ✦
+
+Un editor de Markdown con el estilo visual de **Claude** by Anthropic.
+
+## Características
+
+- ✍ Editor con ajuste de línea y soporte multipestaña
+- 👁 Vista previa en tiempo real — editable directamente
+- 💾 Guardar en el mismo archivo con Ctrl+S
+- 📂 Abre varios archivos a la vez como pestañas
+- ☁ Guardado automático en LocalStorage
+
+## Sintaxis Markdown
+
+### Énfasis de texto
+
+Puedes usar **negrita**, *cursiva*, ~~tachado~~ y \`código inline\`.
+
+### Citas
+
+> "La simplicidad es la máxima sofisticación."
+> — Leonardo da Vinci
+
+### Código
+
+\`\`\`javascript
+const claude = {
+  nombre: "Claude",
+  empresa: "Anthropic",
+  saludo: () => console.log("Hola, mundo ✦")
+};
+
+claude.saludo();
+\`\`\`
+
+### Listas de tareas
+
+- [x] Crear el editor
+- [x] Añadir vista previa editable
+- [x] Soporte para múltiples archivos
+- [ ] Personalizar estilos propios
+
+### Tabla
+
+| Característica      | Estado      | Prioridad |
+|---------------------|-------------|-----------|
+| Editor MD           | ✅ Listo    | Alta      |
+| Vista previa        | ✅ Listo    | Alta      |
+| Edición en preview  | ✅ Listo    | Alta      |
+| Multipestaña        | ✅ Listo    | Media     |
+| LocalStorage        | ✅ Listo    | Media     |
+
+---
+
+*Empieza a escribir o edita esta vista previa directamente haciendo clic aquí.*
+`;
+
+// ═══════════════════════════════════════════════════
+// PANEL DE AJUSTES VISUALES
+// ═══════════════════════════════════════════════════
+const FONT_OPTIONS = [
+  { label: 'Lora (serif)',          value: "'Lora', Georgia, serif" },
+  { label: 'Source Serif',          value: "'Source Serif 4', Georgia, serif" },
+  { label: 'Merriweather',          value: "'Merriweather', Georgia, serif" },
+  { label: 'DM Sans',               value: "'DM Sans', sans-serif" },
+  { label: 'Inter',                 value: "'Inter', sans-serif" },
+  { label: 'DM Mono',               value: "'DM Mono', monospace" },
+  { label: 'JetBrains Mono',        value: "'JetBrains Mono', monospace" },
+  { label: 'Fira Code',             value: "'Fira Code', monospace" },
+];
+const ACCENT_OPTIONS = [
+  { name:'Terracota', accent:'#CF6A4C', hover:'#D97855' },
+  { name:'Azul',      accent:'#5B8DEF', hover:'#6F9CF2' },
+  { name:'Verde',     accent:'#5FA37A', hover:'#6FB389' },
+  { name:'Púrpura',   accent:'#9B7BD4', hover:'#A98CDD' },
+  { name:'Rosa',      accent:'#D46A9B', hover:'#DD7FAA' },
+  { name:'Ámbar',     accent:'#D9A04C', hover:'#E0AE5F' },
+];
+const DEFAULT_SETTINGS = {
+  theme: 'dark',
+  accent: '#CF6A4C',
+  'font-editor': "'DM Mono', monospace",
+  'font-preview': "'Lora', Georgia, serif",
+  'editor-size': '14.5px',
+  'preview-size': '16.5px',
+  'editor-lh': '1.75',
+  'preview-lh': '1.85',
+  'preview-width': '720px',
+};
+let settings = { ...DEFAULT_SETTINGS };
+
+function openSettings() {
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsDrawer').classList.add('open');
+  syncSettingsUI();
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsDrawer').classList.remove('open');
+}
+
+function applySetting(key, value) {
+  settings[key] = value;
+  document.documentElement.style.setProperty('--' + key, value);
+  saveSettings();
+}
+
+function setTheme(theme) {
+  settings.theme = theme;
+  document.body.classList.toggle('light-theme', theme === 'light');
+  document.getElementById('themeDark').classList.toggle('active', theme === 'dark');
+  document.getElementById('themeLight').classList.toggle('active', theme === 'light');
+  saveSettings();
+}
+
+function setAccent(accent, hover) {
+  settings.accent = accent;
+  const soft = hexToRgba(accent, 0.12);
+  const glow = hexToRgba(accent, 0.25);
+  const sel  = hexToRgba(accent, 0.3);
+  const root = document.documentElement.style;
+  root.setProperty('--accent', accent);
+  root.setProperty('--accent-hover', hover || accent);
+  root.setProperty('--accent-soft', soft);
+  root.setProperty('--accent-glow', glow);
+  root.setProperty('--selection', sel);
+  renderAccentSwatches();
+  saveSettings();
+}
+
+function hexToRgba(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function renderAccentSwatches() {
+  const cont = document.getElementById('accentSwatches');
+  cont.innerHTML = '';
+  ACCENT_OPTIONS.forEach(opt => {
+    const sw = document.createElement('div');
+    sw.className = 'accent-sw' + (opt.accent === settings.accent ? ' active' : '');
+    sw.style.background = opt.accent;
+    sw.title = opt.name;
+    sw.onclick = () => setAccent(opt.accent, opt.hover);
+    cont.appendChild(sw);
+  });
+}
+
+function populateFontSelects() {
+  ['setFontEditor','setFontPreview'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    FONT_OPTIONS.forEach(f => {
+      const o = document.createElement('option');
+      o.value = f.value; o.textContent = f.label;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function syncSettingsUI() {
+  document.getElementById('setFontEditor').value = settings['font-editor'];
+  document.getElementById('setFontPreview').value = settings['font-preview'];
+  const set = (id, val, lbl) => {
+    document.getElementById(id).value = parseFloat(val);
+    if (lbl) document.getElementById(lbl).textContent = val;
+  };
+  set('setEditorSize', settings['editor-size'], 'valEditorSize');
+  set('setEditorLh', settings['editor-lh'], 'valEditorLh');
+  set('setPreviewSize', settings['preview-size'], 'valPreviewSize');
+  set('setPreviewLh', settings['preview-lh'], 'valPreviewLh');
+  set('setPreviewWidth', settings['preview-width'], 'valPreviewWidth');
+  setTheme(settings.theme);
+  renderAccentSwatches();
+}
+
+function applyAllSettings() {
+  const root = document.documentElement.style;
+  ['font-editor','font-preview','editor-size','preview-size','editor-lh','preview-lh','preview-width']
+    .forEach(k => root.setProperty('--' + k, settings[k]));
+  document.body.classList.toggle('light-theme', settings.theme === 'light');
+  const ao = ACCENT_OPTIONS.find(a => a.accent === settings.accent) || ACCENT_OPTIONS[0];
+  setAccent(ao.accent, ao.hover);
+}
+
+function saveSettings() {
+  try { localStorage.setItem('claudemd_settings', JSON.stringify(settings)); } catch(e) {}
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem('claudemd_settings');
+    if (raw) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+function resetSettings() {
+  settings = { ...DEFAULT_SETTINGS };
+  applyAllSettings();
+  syncSettingsUI();
+  saveSettings();
+  showToast('↺ Apariencia restablecida');
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+function init() {
+  loadSettings();
+  populateFontSelects();
+  applyAllSettings();
+
+  const restored = loadFromLS();
+  if (restored && tabs.length > 0) {
+    const tab = getActiveTab() || tabs[0];
+    editor.value = tab.content;
+    renderTabs();
+    activeTabId = tab.id;
+    renderTabs();
+    showToast('✓ Sesión restaurada desde LocalStorage');
+  } else {
+    const tab = createTab('documento', initialMD);
+    tab.savedContent = initialMD;
+    tab.modified = false;
+    activeTabId = tab.id;
+    editor.value = initialMD;
+    renderTabs();
+  }
+  applyWordWrap();
+  setView(currentView);
+  updatePreview();
+  updateCursor();
+  updateModifiedIndicator();
+  editor.focus();
+}
+
+init();
+</script>
+</body>
+</html>

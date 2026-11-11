@@ -1,0 +1,73 @@
+:root {
+  --bg-primary:   #1C1917;
+  --bg-secondary: #242220;
+  --bg-tertiary:  #2D2A27;
+  --bg-hover:     #343130;
+  --border:       #3D3A37;
+  --border-light: #4A4744;
+  --text-primary: #F2EDE8;
+  --text-secondary:#B8AFA8;
+  --text-muted:   #9A938D;   /* 5.8:1 sobre --bg-primary (AA) */
+  --accent:       #CF6A4C;
+  --accent-hover: #D97855;
+  --code-fg:      #E0A07A;
+  --danger:       #E0634F;
+  --warn:         #D9A04C;
+  --accent-text:  #E8896C;   /* acento legible como TEXTO (≥4.5:1) en tema oscuro */
+  --accent-strong: #B5532F;   /* fondo de botones con texto blanco (AA) */
+  --accent-soft:  rgba(207,106,76,0.12);
+  --accent-glow:  rgba(207,106,76,0.25);
+  --success:      #5FA37A;
+  --code-bg:      #161412;
+  --selection:    rgba(207,106,76,0.3);
+  --scrollbar:    #3D3A37;
+  --font-display: 'Lora', Georgia, serif;
+  --font-ui:      'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', 'Courier New', monospace;
+  /* Configurables desde el panel de ajustes */
+  --font-editor:  'DM Mono', 'Courier New', monospace;
+  --font-preview: 'Lora', Georgia, serif;
+  --editor-size:  14.5px;
+  --preview-size: 16.5px;
+  --editor-lh:    1.75;
+  --preview-lh:   1.85;
+  --preview-width: 720px;
+  --radius:       6px;
+  --radius-lg:    10px;
+  --transition:   0.18s ease;
+  --sidebar-w:    54px;
+}
+
+/* ── TEMA CLARO ────────────────────────────── */
+body.light-theme {
+  --bg-primary:   #FBF8F4;
+  --bg-secondary: #F3EEE7;
+  --bg-tertiary:  #EAE3D9;
+  --bg-hover:     #E0D7CB;
+  --border:       #DDD3C6;
+  --border-light: #CABFAF;
+  --text-primary: #2A2622;
+  --text-secondary:#5C544C;
+  --code-fg:      #8A4A22;
+  --danger:       #B02E1F;
+  --warn:         #8A5A00;
+  --success:      #25704A;
+  --accent-text:  #A8431F;
+  --text-muted:   #5F574D;   /* AA sobre fondo claro */
+  --code-bg:      #F0EAE0;
+  --selection:    rgba(207,106,76,0.22);
+  --scrollbar:    #CABFAF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+::selection { background: var(--selection); }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-size: 14px;
+}

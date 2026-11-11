@@ -1,0 +1,563 @@
+/* ── MAIN AREA ────────────────────────────── */
+.main-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── LEFT SIDEBAR ─────────────────────────── */
+.left-sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 2px;
+  flex-shrink: 0;
+  overflow: visible;
+  scrollbar-width: none;
+}
+.left-sidebar::-webkit-scrollbar { display: none; }
+
+.sb-btn {
+  width: 40px;
+  height: 36px;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  position: relative;
+}
+.sb-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sb-btn:active { background: var(--accent-soft); color: var(--accent-text); transform: scale(0.9); }
+.sb-btn.active { background: var(--accent-soft); color: var(--accent-text); }
+
+/* ── GRUPOS DESPLEGABLES (estilo Photoshop) ── */
+.sb-group { position: relative; flex-shrink: 0; }
+.sb-group-trigger { position: relative; width: 40px; height: 36px; }
+.sb-caret {
+  position: absolute;
+  bottom: 2px; right: 3px;
+  font-size: 7px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.sb-group:hover .sb-group-trigger { background: var(--bg-hover); color: var(--text-primary); }
+.sb-group:hover .sb-caret { color: var(--accent-text); }
+.sb-flyout {
+  position: absolute;
+  left: calc(100% + 6px);
+  top: -4px;
+  z-index: 9500;
+  min-width: 210px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--sh-2);
+  padding: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition: opacity 0.13s ease, transform 0.13s ease, visibility 0.13s;
+}
+/* Puente invisible para que el ratón pueda cruzar al flyout sin que se cierre */
+.sb-flyout::before {
+  content: '';
+  position: absolute;
+  left: -10px; top: 0;
+  width: 10px; height: 100%;
+}
+.sb-group:hover .sb-flyout,
+.sb-flyout:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+.sb-flyout-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+  padding: 5px 10px 7px;
+  font-family: var(--font-ui);
+}
+.sb-fly-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.sb-fly-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sb-fly-btn b, .sb-fly-btn i, .sb-fly-btn s {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  color: var(--accent-text);
+  flex-shrink: 0;
+}
+.sb-fly-btn kbd {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.sb-tpl-row { display: flex; align-items: center; }
+.sb-tpl-row .sb-tpl-use { flex: 1; }
+.sb-tpl-del {
+  width: 24px; height: 28px;
+  flex-shrink: 0;
+  border: none; background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-size: 15px;
+  opacity: 0;
+  transition: all var(--transition);
+}
+.sb-tpl-row:hover .sb-tpl-del { opacity: 0.6; }
+.sb-tpl-del:hover { opacity: 1 !important; background: var(--bg-hover); color: #E07070; }
+
+/* ── TOC PANEL ─────────────────────────────── */
+.toc-panel {
+  width: 0;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+.toc-panel.open { width: 240px; }
+.toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 16px;
+  height: 36px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.toc-close {
+  width: 24px; height: 24px;
+  border: none; background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-size: 16px;
+  transition: all var(--transition);
+}
+.toc-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.toc-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 6px;
+  scrollbar-width: thin;
+}
+.toc-list::-webkit-scrollbar { width: 5px; }
+.toc-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+.toc-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.toc-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.toc-item.lvl1 { font-weight: 600; color: var(--text-primary); }
+.toc-item.lvl2 { padding-left: 20px; }
+.toc-item.lvl3 { padding-left: 32px; font-size: 12px; }
+.toc-item.lvl4 { padding-left: 44px; font-size: 11.5px; color: var(--text-muted); }
+.toc-item.lvl5, .toc-item.lvl6 { padding-left: 52px; font-size: 11px; color: var(--text-muted); }
+.toc-empty {
+  padding: 20px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-family: var(--font-display);
+  text-align: center;
+  line-height: 1.6;
+}
+.sb-sep {
+  width: 28px;
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+  flex-shrink: 0;
+}
+.sb-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-ui);
+  text-align: center;
+  padding: 4px 0 2px;
+}
+
+/* ── WORKSPACE ────────────────────────────── */
+.workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  transition: flex 0.25s ease;
+}
+.panel.hidden { display: none; }
+
+.panel-label {
+  padding: 6px 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/* EDITOR */
+.editor-panel { border-right: 1px solid var(--border); }
+.editor-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+.editor-wrap {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+}
+.editor-stack {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+/* La capa de resaltado y el textarea comparten EXACTAMENTE la misma métrica */
+.editor-highlight,
+textarea#editor {
+  margin: 0;
+  padding: 18px 20px;
+  font-family: var(--font-editor);
+  font-size: var(--editor-size);
+  line-height: var(--editor-lh);
+  letter-spacing: normal;
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  border: none;
+  box-sizing: border-box;
+}
+.editor-highlight {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow: hidden;   /* el contenido se desplaza vía scrollTop sincronizado, no scrollbar propia */
+}
+.editor-highlight .eh-inner { display: block; }
+/* Resaltado de la línea actual */
+#currentLineHighlight {
+  position: absolute;
+  left: 0; right: 0;
+  background: var(--accent-soft);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+  transition: top 0.05s linear;
+}
+.editor-stack.no-linehl #currentLineHighlight { display: none; }
+
+/* ── MODO CONCENTRACIÓN ────────────────────── */
+body.zen .menubar,
+body.zen .tabs-bar,
+body.zen #leftSidebar,
+body.zen .statusbar,
+body.zen #divider,
+body.zen .panel-label { display: none !important; }
+body.zen #previewPanel { display: none !important; }
+body.zen .workspace { height: 100vh; }
+body.zen #editorPanel { flex: 1 1 100% !important; }
+body.zen .editor-highlight,
+body.zen textarea#editor {
+  padding-left: max(24px, calc(50vw - 420px));
+  padding-right: max(24px, calc(50vw - 420px));
+  padding-top: 48px;
+}
+.zen-exit {
+  position: fixed;
+  top: 14px; right: 16px;
+  z-index: 10050;
+  display: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity var(--transition);
+}
+body.zen .zen-exit { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.zen-exit:hover { opacity: 1; }
+.line-numbers {
+  padding: 18px 0;
+  min-width: 46px;
+  text-align: right;
+  padding-right: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.75;
+  user-select: none;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+textarea#editor {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  background: transparent;
+  color: var(--text-primary);   /* visible por defecto: si el resaltado falla, el texto se ve igual */
+  caret-color: var(--accent);
+  outline: none;
+  resize: none;
+  overflow-y: auto;     /* el textarea es el ÚNICO que scrollea verticalmente */
+  overflow-x: hidden;
+  height: 100%;
+  width: 100%;
+}
+/* Solo cuando el resaltado está activo Y aplicado, el textarea se hace transparente
+   y deja ver la capa de color debajo. Es a prueba de fallos: cualquier problema con
+   el resaltado deja el texto visible en vez de un editor "vacío". */
+.editor-stack.highlight-on textarea#editor { color: transparent; }
+.editor-stack:not(.highlight-on) .editor-highlight { display: none; }
+/* Colores de los tokens markdown.
+   ESTRATEGIA DE EFECTOS SIN DESALINEAR:
+   - La negrita NO usa font-weight (cambiaría el ancho y desalinearía la capa).
+     Se simula con text-shadow: engrosa el trazo dejando el ancho del glifo intacto.
+   - La cursiva usa font-style: italic (en monoespaciada conserva el avance horizontal).
+   - Los encabezados SÍ pueden llevar font-weight real: ocupan su línea completa, así
+     que un cambio de ancho ahí no arrastra texto normal posterior en la misma línea. */
+.tok-h      { color: var(--accent-text); font-weight: 700; }
+.tok-marker { color: var(--text-muted); opacity: 0.7; }
+.tok-bold   { color: var(--text-primary); text-shadow: 0.4px 0 0 currentColor, -0.4px 0 0 currentColor; }
+.tok-italic { color: var(--text-primary); font-style: italic; }
+.tok-strike { color: var(--text-muted); text-decoration: line-through; }
+.tok-code   { color: #C98A5E; }
+.tok-codeblock { color: #C98A5E; }
+.tok-link   { color: #5B8DEF; text-decoration: underline; text-decoration-color: rgba(91,141,239,0.35); }
+.tok-url    { color: var(--text-muted); }
+.tok-quote  { color: var(--text-secondary); font-style: italic; }
+.tok-list   { color: var(--accent-text); text-shadow: 0.4px 0 0 currentColor, -0.4px 0 0 currentColor; }
+.tok-hr     { color: var(--text-muted); }
+.tok-tag    { color: #9B7BD4; }
+body.light-theme .tok-code, body.light-theme .tok-codeblock { color: #B5651D; }
+body.light-theme .tok-link { color: #3A6FD8; }
+body.light-theme .tok-tag  { color: #7C5BB8; }
+textarea#editor::placeholder { color: var(--text-muted); }
+textarea#editor::-webkit-scrollbar { width: 5px; }
+textarea#editor::-webkit-scrollbar-track { background: transparent; }
+textarea#editor::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+
+/* ── FIND & REPLACE PANEL ──────────────────── */
+.find-panel {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9000;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--sh-3);
+  padding: 10px;
+  display: none;
+  flex-direction: column;
+  gap: 7px;
+  width: 520px;
+  max-width: 92vw;
+  animation: ddFadeIn 0.12s ease;
+}
+.find-panel.open { display: flex; }
+.find-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.find-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 8px;
+  height: 30px;
+  transition: border-color var(--transition);
+}
+.find-input-wrap:focus-within { border-color: var(--accent); }
+.find-input-wrap input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  height: 100%;
+}
+.find-input-wrap input::placeholder { color: var(--text-muted); }
+.find-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding-left: 6px;
+  flex-shrink: 0;
+}
+.find-count.nores { color: #E07070; }
+.find-btn {
+  width: 28px; height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  transition: all var(--transition);
+  font-family: var(--font-ui);
+}
+.find-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+.find-btn.toggle.active { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+.find-btn.wide { width: auto; padding: 0 10px; font-size: 12px; white-space: nowrap; }
+.find-close {
+  width: 28px; height: 30px;
+  flex-shrink: 0;
+  border: none; background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-size: 16px;
+  transition: all var(--transition);
+}
+.find-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.find-options { display: flex; gap: 4px; }
+
+/* ── FLASH / HIGHLIGHT AL SALTAR ───────────── */
+@keyframes flashFade {
+  0%   { background: var(--accent-glow); }
+  100% { background: transparent; }
+}
+.flash-line {
+  animation: flashFade 2s ease forwards;
+  border-radius: 4px;
+}
+/* Overlay para resaltar en el editor (textarea no admite highlight interno) */
+.editor-flash {
+  position: absolute;
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 1.5px var(--accent-glow) inset;
+  pointer-events: none;
+  z-index: 5;
+  border-radius: 3px;
+  animation: flashFadeStrong 2s ease forwards;
+}
+@keyframes flashFadeStrong {
+  0%   { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+  30%  { background: var(--accent-glow); }
+  100% { background: transparent; box-shadow: none; }
+}
+.preview-content .flash-target {
+  animation: flashFade 2s ease forwards;
+  border-radius: 4px;
+  margin-left: -6px;
+  padding-left: 6px;
+}
+mark.sync-mark {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 3px;
+  padding: 0 2px;
+  animation: markFade 2s ease forwards;
+}
+@keyframes markFade {
+  0%, 60% { background: var(--accent); color: #fff; }
+  100% { background: var(--accent-soft); color: inherit; }
+}
+
+/* DIVIDER */
+.divider {
+  width: 4px;
+  background: var(--border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background var(--transition);
+  position: relative;
+}
+.divider:hover, .divider.dragging { background: var(--accent); }
+.divider::after { content: ''; position: absolute; inset: 0 -4px; }
