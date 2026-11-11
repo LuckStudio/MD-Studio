@@ -22,6 +22,7 @@ import { showDiff } from './diff.js';
 import { copyShareLink, exportDOCX, openExport } from './exportdlg.js';
 import { openHistory } from './versions.js';
 import { showClaudeCheck } from './claude.js';
+import { installApp, isInstalled } from './pwa.js';
 import { toggleReader } from './reader.js';
 import { startTour } from './tour.js';
 import { startTutorial } from './tutorial.js';
@@ -146,6 +147,7 @@ export function buildCommands() {
     { group:'Archivo', icon:'🏠', name:'Ir a la pantalla de inicio', run:showHome },
     { group:'Ayuda', icon:'▶', name:'Tutorial animado (vídeo)', run:startTutorial },
     { group:'Ayuda', icon:'ℹ', name:'Recorrido guiado', run:startTour },
+    ...(isInstalled() ? [] : [{ group:'Ayuda', icon:'⬇', name:'Instalar como aplicación', run:installApp }]),
     { group:'Archivo', icon:'⇄', name:'Ver cambios sin guardar', run:()=>showDiff() },
     { group:'Archivo', icon:'↺', name:'Historial de versiones', run:openHistory },
     { group:'Claude', icon:'✓', name:'Comprobar archivo de Claude (skill, agente, CLAUDE.md…)', run:showClaudeCheck },

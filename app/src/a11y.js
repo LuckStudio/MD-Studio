@@ -9,6 +9,7 @@ import { closeDiff } from './diff.js';
 import { closeExport } from './exportdlg.js';
 import { closeHistory } from './versions.js';
 import { closeClaudeCheck } from './claude.js';
+import { closeInstallHelp } from './pwa.js';
 
 // ═══════════════════════════════════════════════════
 // ACCESIBILIDAD: foco en diálogos, menús con teclado, nombres de botones, pestañas
@@ -42,6 +43,7 @@ export const DIALOGS = [
   { el: '#histOverlay', close: () => closeHistory() },
   { el: '#backOverlay', close: () => closeBacklinks() },
   { el: '#exportOverlay', close: () => closeExport() },
+  { el: '#installOverlay', close: () => closeInstallHelp() },
 ];
 export const dlgState = new Map();   // elemento → foco anterior
 export const inertBg = new Map();    // elemento → fondo que se volvió inerte

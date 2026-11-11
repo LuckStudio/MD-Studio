@@ -27,7 +27,7 @@ import { toggleReader } from './reader.js';
 import { dismissTour, startTour } from './tour.js';
 import { startTutorial } from './tutorial.js';
 import { hideHome, openExampleTab, pasteAsNewTab, showHome } from './home.js';
-import { installApp } from './pwa.js';
+import { closeInstallHelp, installApp } from './pwa.js';
 
 // ═══════════════════════════════════════════════════
 // DESPACHO DE EVENTOS DECLARATIVOS
@@ -41,7 +41,7 @@ export const ACTIONS = {
   // archivo / pestañas
   newTab, openFile, closeActiveTab, closeTab, saveFile, saveFileAs, downloadMD, copyMD,
   triggerImport, exportHTML, exportPDF, exportTXT, showExample, clearEditor,
-  showHome, hideHome, openExampleTab, pasteAsNewTab, clearRecents, installApp,
+  showHome, hideHome, openExampleTab, pasteAsNewTab, clearRecents, installApp, closeInstallHelp,
   openFolder, closeFolder, toggleFiles, showDiff, closeDiff, showClaudeCheck, closeClaudeCheck,
   newFromTemplate, saveFromDiff, conflictReload, conflictKeep, conflictDiff,
   // formato / insertar

@@ -265,3 +265,10 @@ body.home-open .zen-exit { display: none; }
 @media (max-width: 560px) { .home-tour { flex-wrap: wrap; } }
 .home-drop { padding: var(--sp-3); font-size: var(--fs-sm); }
 .home-actions { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+/* Instalación (PWA) */
+.home-install .home-pill { flex: none; }
+.install-help p { margin: 0 0 var(--sp-3); }
+.install-steps { margin: 0 0 var(--sp-3); padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.install-note { color: var(--text-secondary); font-size: var(--fs-sm); }
+.home-top-right { display: flex; align-items: center; gap: var(--sp-2); }

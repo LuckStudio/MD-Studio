@@ -41,7 +41,10 @@
 <section class="home" id="home" aria-label="Inicio">
   <div class="home-top">
     <button class="home-link" id="homeBack" data-action="hideHome" title="Volver al editor (Esc)">← Volver al editor</button>
-    <button class="home-link" data-action="openSettings"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"/></svg> Apariencia</button>
+    <span class="home-top-right">
+      <button class="home-link install-menu-item" data-action="installApp"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar</button>
+      <button class="home-link" data-action="openSettings"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"/></svg> Apariencia</button>
+    </span>
   </div>
 
   <div class="home-inner">
@@ -86,6 +89,14 @@
       </div>
     </div>
 
+    <div class="home-tour home-install install-menu-item" id="homeInstall">
+      <div>
+        <b>Instala MD Studio como aplicación</b>
+        <span>Ábrela desde el escritorio, sin barra del navegador, con tus .md y también sin conexión.</span>
+      </div>
+      <button class="home-pill accent" data-action="installApp"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar</button>
+    </div>
+
     <div class="home-tour" id="homeTour" hidden>
       <div>
         <b>Aprende MD Studio en minuto y medio</b>
@@ -107,7 +118,7 @@
     <div class="home-drop">o arrastra archivos aquí</div>
 
     <footer class="home-foot">
-      <button class="home-pill accent" id="installBtn" data-action="installApp" hidden><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar como aplicación</button>
+      <button class="home-pill accent install-menu-item" id="installBtn" data-action="installApp"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar como aplicación</button>
       <button class="home-pill" data-action="pasteAsNewTab"><svg class="ic" aria-hidden="true"><use href="#i-clipboard-paste"/></svg> Pegar Markdown</button>
       <button class="home-pill" data-action="startTutorial"><svg class="ic" aria-hidden="true"><use href="#i-clapperboard"/></svg> Tutorial animado</button>
       <button class="home-pill" data-action="startTour"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg> Recorrido</button>
@@ -128,7 +139,7 @@
     <button class="menu-btn" data-action="toggleMenu" data-args='[&quot;archivo&quot;]' aria-haspopup="menu" aria-expanded="false" aria-controls="dd-archivo">Archivo</button>
     <div class="menu-dd" id="dd-archivo" role="menu" aria-label="Archivo">
       <button role="menuitem" data-action="showHome"><svg class="ic" aria-hidden="true"><use href="#i-house"/></svg> Inicio</button>
-      <button role="menuitem" data-action="installApp" class="install-menu-item" hidden><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar como aplicación</button>
+      <button role="menuitem" data-action="installApp" class="install-menu-item"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar como aplicación</button>
       <div class="menu-sep" role="separator"></div>
       <button role="menuitem" data-action="newTab"><svg class="ic" aria-hidden="true"><use href="#i-file-plus"/></svg> Nuevo <kbd>Ctrl+N</kbd></button>
       <button role="menuitem" data-action="openFile"><svg class="ic" aria-hidden="true"><use href="#i-folder-open"/></svg> Abrir archivo… <kbd>Ctrl+O</kbd></button>
@@ -217,6 +228,7 @@
       <button class="toggle-btn" data-action="setView" data-args='[&quot;editor&quot;]' id="v-editor" title="Solo editor" aria-label="Solo editor"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg></button>
       <button class="toggle-btn" data-action="setView" data-args='[&quot;preview&quot;]' id="v-preview" title="Solo vista previa" aria-label="Solo vista previa"><svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg></button>
     </div>
+    <button class="menu-btn install-menu-item install-top" data-action="installApp" title="Instalar como aplicación" style="padding:0 12px;height:30px;border-radius:var(--radius);display:flex;align-items:center;gap:6px"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar</button>
     <button class="menu-btn" data-action="openSettings" title="Apariencia" style="padding:0 12px;height:30px;border-radius:var(--radius);display:flex;align-items:center;gap:6px"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"/></svg> Apariencia</button>
   </div>
 </nav>
@@ -644,6 +656,17 @@
       <button class="find-close" data-action="closeClaudeCheck" title="Cerrar">×</button>
     </div>
     <div class="stats-body" id="claudeBody"></div>
+  </div>
+</div>
+
+<!-- AYUDA PARA INSTALAR (cuando el navegador no ofrece el aviso automático) -->
+<div class="stats-overlay" id="installOverlay" data-overlay-close="closeInstallHelp">
+  <div class="stats-box" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+    <div class="stats-head">
+      <h3 id="installTitle"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg> Instalar como aplicación</h3>
+      <button class="find-close" data-action="closeInstallHelp" aria-label="Cerrar">×</button>
+    </div>
+    <div class="stats-body install-help" id="installBody"></div>
   </div>
 </div>
 

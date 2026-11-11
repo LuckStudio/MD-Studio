@@ -1,5 +1,5 @@
 // Generado por tools/build.mjs — no editar
-self.__VERSION__ = '2d4b968832';
+self.__VERSION__ = '76dccc3418';
 self.__SHELL__ = [
  "./",
  "boot-guard.js",
