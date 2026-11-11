@@ -59,4 +59,12 @@ try {
   await page.evaluate(() => { setTheme('light'); openExport(); }); await shot('export');
   await page.keyboard.press('Escape');
   await page.evaluate(() => { setTheme('dark'); setView('preview'); toggleReader(); }); await shot('reader');
+
+  // Capturas del manifest (diálogo de instalación PWA): app/screenshots/
+  await mkdir('app/screenshots', { recursive: true });
+  await page.evaluate(() => { toggleReader(); setTheme('dark'); setView('split'); });
+  await settle(); await page.screenshot({ path: 'app/screenshots/wide.png' });
+  await page.setViewportSize({ width: 540, height: 960 });
+  await page.evaluate(() => { setView('preview'); }); await settle();
+  await page.screenshot({ path: 'app/screenshots/narrow.png' });
 } finally { await browser.close(); server.kill(); }

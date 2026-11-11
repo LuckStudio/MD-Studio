@@ -2,7 +2,7 @@
   "name": "MD Studio",
   "short_name": "MD Studio",
   "description": "Lector y editor de archivos Markdown",
-  "id": "./",
+  "id": "md-studio",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -10,12 +10,6 @@
   "theme_color": "#1C1917",
   "lang": "es",
   "icons": [
-    {
-      "src": "icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
@@ -78,5 +72,21 @@
         }
       ]
     }
-  }
+  },
+  "screenshots": [
+    {
+      "src": "screenshots/wide.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Editor con vista previa en directo"
+    },
+    {
+      "src": "screenshots/narrow.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "MD Studio en el móvil"
+    }
+  ]
 }

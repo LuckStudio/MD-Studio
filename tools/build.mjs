@@ -43,7 +43,7 @@ await build({
   entryPoints: [join(APP, 'src/main.js')], bundle: true, minify: true, sourcemap: true, format: 'iife',
   target: 'es2022', outfile: join(WEB, 'app.js'), legalComments: 'none', logLevel: 'warning',
 });
-for (const d of ['css', 'fonts', 'icons', 'vendor']) cpSync(join(APP, d), join(WEB, d), { recursive: true, filter: s => !s.endsWith('.map') });
+for (const d of ['css', 'fonts', 'icons', 'screenshots', 'vendor']) cpSync(join(APP, d), join(WEB, d), { recursive: true, filter: s => !s.endsWith('.map') });
 for (const f of ['manifest.webmanifest', 'sw.js', 'boot-guard.js']) cpSync(join(APP, f), join(WEB, f));
 let html = read(join(APP, 'index.html'));
 html = html.replace('<script type="module" src="src/main.js"></script>', '<script defer src="app.js"></script>');
